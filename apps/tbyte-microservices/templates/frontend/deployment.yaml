@@ -32,6 +32,14 @@ spec:
             - name: http
               containerPort: {{ .Values.frontend.service.targetPort }}
               protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 10
           livenessProbe:
             httpGet:
               path: /
