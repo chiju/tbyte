@@ -13,11 +13,29 @@ spec:
   http:
   - match:
     - uri:
-        prefix: /api/
+        exact: /api/health
     rewrite:
-      uriRegexRewrite:
-        match: "^/api/(.*)"
-        rewrite: "/\\1"
+      uri: /health
+    route:
+    - destination:
+        host: {{ include "tbyte-microservices.fullname" . }}-backend
+        port:
+          number: {{ .Values.backend.service.port }}
+  - match:
+    - uri:
+        exact: /api/users
+    rewrite:
+      uri: /users
+    route:
+    - destination:
+        host: {{ include "tbyte-microservices.fullname" . }}-backend
+        port:
+          number: {{ .Values.backend.service.port }}
+  - match:
+    - uri:
+        exact: /api/products
+    rewrite:
+      uri: /products
     route:
     - destination:
         host: {{ include "tbyte-microservices.fullname" . }}-backend
