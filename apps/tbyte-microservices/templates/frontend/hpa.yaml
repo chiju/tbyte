@@ -1,6 +1,6 @@
 {{- if and .Values.frontend.enabled .Values.frontend.autoscaling.enabled }}
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
 metadata:
   name: {{ include "tbyte-microservices.fullname" . }}-frontend
   labels:
@@ -8,26 +8,16 @@ metadata:
     app.kubernetes.io/component: frontend
 spec:
   scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
     name: {{ include "tbyte-microservices.fullname" . }}-frontend
-  minReplicas: {{ .Values.frontend.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.frontend.autoscaling.maxReplicas }}
-  metrics:
-    {{- if .Values.frontend.autoscaling.targetCPUUtilizationPercentage }}
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: {{ .Values.frontend.autoscaling.targetCPUUtilizationPercentage }}
-    {{- end }}
-    {{- if .Values.frontend.autoscaling.targetMemoryUtilizationPercentage }}
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: {{ .Values.frontend.autoscaling.targetMemoryUtilizationPercentage }}
-    {{- end }}
+  minReplicaCount: {{ .Values.frontend.autoscaling.minReplicas }}
+  maxReplicaCount: {{ .Values.frontend.autoscaling.maxReplicas }}
+  triggers:
+  - type: cpu
+    metadata:
+      type: Utilization
+      value: "{{ .Values.frontend.autoscaling.targetCPUUtilizationPercentage | default 70 }}"
+  - type: memory
+    metadata:
+      type: Utilization
+      value: "{{ .Values.frontend.autoscaling.targetMemoryUtilizationPercentage | default 80 }}"
 {{- end }}
