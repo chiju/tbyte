@@ -138,3 +138,4 @@ module "argocd" {
 # 
 #   # No depends_on needed - Identity Center users are independent of EKS
 # }
+# Trigger workflow
