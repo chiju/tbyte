@@ -65,10 +65,10 @@ resource "aws_ecr_lifecycle_policy" "frontend" {
         rulePriority = 2
         description  = "Keep last 5 latest images"
         selection = {
-          tagStatus   = "tagged"
+          tagStatus     = "tagged"
           tagPrefixList = ["latest"]
-          countType   = "imageCountMoreThan"
-          countNumber = 5
+          countType     = "imageCountMoreThan"
+          countNumber   = 5
         }
         action = {
           type = "expire"
@@ -113,10 +113,10 @@ resource "aws_ecr_lifecycle_policy" "backend" {
         rulePriority = 2
         description  = "Keep last 5 latest images"
         selection = {
-          tagStatus   = "tagged"
+          tagStatus     = "tagged"
           tagPrefixList = ["latest"]
-          countType   = "imageCountMoreThan"
-          countNumber = 5
+          countType     = "imageCountMoreThan"
+          countNumber   = 5
         }
         action = {
           type = "expire"
