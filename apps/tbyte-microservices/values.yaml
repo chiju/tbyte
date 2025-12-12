@@ -114,7 +114,7 @@ postgres:
 
 # Ingress Configuration (AWS ALB)
 ingress:
-  enabled: false  # Disable for now, use kubectl port-forward for testing
+  enabled: true  # Enable for assessment demonstration
   className: "alb"
   annotations:
     kubernetes.io/ingress.class: alb
