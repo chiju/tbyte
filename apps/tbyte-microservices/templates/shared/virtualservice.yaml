@@ -9,7 +9,7 @@ spec:
   hosts:
   - tbyte.local
   gateways:
-  - istio-system/common-gateway
+  - istio-system/common-gateway  # Reference common gateway
   http:
   - match:
     - uri:
