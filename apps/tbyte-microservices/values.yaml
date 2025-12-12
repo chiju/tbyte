@@ -8,7 +8,7 @@ frontend:
   enabled: true
   image:
     repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/eks-gitops-lab-frontend
-    tag: "latest"
+    tag: "cbf80423"
     pullPolicy: Always
   
   replicaCount: 2
@@ -38,7 +38,7 @@ backend:
   enabled: true
   image:
     repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/eks-gitops-lab-backend
-    tag: "latest"
+    tag: "cbf80423"
     pullPolicy: Always
   
   replicaCount: 2
@@ -84,7 +84,7 @@ postgres:
   enabled: true
   image:
     repository: postgres
-    tag: "15.5-alpine"
+    tag: "cbf80423"
     pullPolicy: IfNotPresent
   
   replicaCount: 1
