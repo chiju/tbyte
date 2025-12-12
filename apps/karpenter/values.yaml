@@ -1,0 +1,12 @@
+# Auto-generated from Terraform outputs by GitHub Actions
+# Do not edit manually - changes will be overwritten
+
+karpenter:
+  settings:
+    clusterName: eks-gitops-lab
+    clusterEndpoint: https://C99030E609B949EB7742C144BDE4B56D.gr7.eu-central-1.eks.amazonaws.com
+    interruptionQueue: eks-gitops-lab
+  
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::432801802107:role/KarpenterControllerRole-eks-gitops-lab

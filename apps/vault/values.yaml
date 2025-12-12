@@ -1,0 +1,29 @@
+vault:
+  server:
+    # Dev mode for learning (NOT for production!)
+    # Dev mode uses in-memory storage, no persistence needed
+    dev:
+      enabled: true
+      devRootToken: "root"
+    
+    # Persistent storage (disabled in dev mode)
+    dataStorage:
+      enabled: false
+    
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 250m
+      limits:
+        memory: 512Mi
+        cpu: 500m
+  
+  ui:
+    enabled: true
+    serviceType: ClusterIP
+  
+  injector:
+    enabled: false  # Disable sidecar
+  
+  csi:
+    enabled: true  # Enable CSI provider
