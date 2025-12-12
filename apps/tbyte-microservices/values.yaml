@@ -62,6 +62,10 @@ backend:
     maxReplicas: 15
     targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 80
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
   
   serviceAccount:
     # IRSA - IAM Role for Service Account (populated by Terraform)
