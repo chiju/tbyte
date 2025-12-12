@@ -23,6 +23,11 @@ output "oidc_provider_arn" {
   value       = aws_iam_openid_connect_provider.iam_openid_connect_provider_eks_cluster_lrn.arn
 }
 
+output "cluster_oidc_issuer_url" {
+  description = "OIDC issuer URL for the EKS cluster"
+  value       = aws_eks_cluster.eks_cluster_lrn.identity[0].oidc[0].issuer
+}
+
 output "node_group_id" {
   description = "EKS node group ID"
   value       = aws_eks_node_group.system_nodes.id

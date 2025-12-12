@@ -57,11 +57,12 @@ module "ecr" {
 module "iam" {
   source = "./modules/iam"
 
-  cluster_name         = var.cluster_name
-  environment          = var.environment
-  namespace            = "default"
-  service_account_name = "${var.cluster_name}-backend"
-  rds_secret_arn       = module.rds.secret_arn
+  cluster_name            = var.cluster_name
+  environment             = var.environment
+  namespace               = "default"
+  service_account_name    = "${var.cluster_name}-backend"
+  rds_secret_arn          = module.rds.secret_arn
+  cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
 
   depends_on = [module.eks, module.rds]
 }
