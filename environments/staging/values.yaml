@@ -1,0 +1,28 @@
+frontend:
+  replicaCount: 2
+  image:
+    tag: "staging-v1.0.0"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  ingress:
+    host: staging.tbyte.local
+
+backend:
+  replicaCount: 2
+  image:
+    tag: "staging-v1.0.0"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+environment: staging
+namespace: staging

@@ -26,6 +26,453 @@ curl -H "Host: tbyte.local" http://52.29.44.16/api/users | jq .
 - ✅ Health endpoint returning service info
 - ✅ User data from PostgreSQL RDS database
 
+## 📋 Complete Deployment Guide
+
+### Prerequisites
+- AWS CLI configured (`aws configure`)
+- kubectl installed
+- Terraform >= 1.5.0
+- Helm >= 3.0
+- Git and GitHub CLI
+
+### 🏗️ Step 1: Infrastructure Deployment (Terraform)
+
+#### 1.1 Bootstrap S3 Backend
+```bash
+# Clone repository
+git clone https://github.com/chiju/tbyte.git
+cd tbyte
+
+# Create S3 backend for Terraform state
+./scripts/bootstrap-backend.sh
+```
+
+#### 1.2 Setup GitHub OIDC (No stored credentials)
+```bash
+# Setup federated authentication
+./scripts/setup-oidc-access.sh
+```
+
+#### 1.3 Configure GitHub Secrets
+
+The `setup-oidc-access.sh` script automatically sets most secrets. You only need to add these manually:
+
+```bash
+# GitHub App credentials (for ArgoCD authentication)
+gh secret set ARGOCD_APP_ID -b "YOUR_GITHUB_APP_ID"
+gh secret set ARGOCD_APP_INSTALLATION_ID -b "YOUR_INSTALLATION_ID"  
+gh secret set ARGOCD_APP_PRIVATE_KEY < path/to/your-app-private-key.pem
+
+# User information (for email notifications)
+gh secret set USER_EMAIL_PREFIX -b "your-name"
+gh secret set USER_EMAIL_DOMAIN -b "company.com"
+```
+
+**Automatically set by scripts:**
+- `AWS_ROLE_ARN` - Set by `setup-oidc-access.sh`
+- `AWS_ACCOUNT_ID` - Set by `setup-oidc-access.sh`  
+- `GIT_REPO_URL` - Set by `setup-oidc-access.sh`
+
+#### 1.3.1 GitHub App Setup (One-time)
+
+**Create GitHub App at:** https://github.com/settings/apps/new
+
+**Required Settings:**
+- **Name:** `ArgoCD-EKS-GitOps` (or any name)
+- **Homepage:** `https://github.com/YOUR_USERNAME/tbyte`
+- **Webhook:** ✅ **Uncheck "Active"** (we don't need webhooks)
+- **Repository permissions:**
+  - **Contents:** `Read-only` (ArgoCD needs to read your repo)
+  - **Metadata:** `Read-only` (automatically required)
+- **Where can this app be installed:** `Only on this account`
+
+**After Creation:**
+1. **Generate private key** → Downloads `.pem` file
+2. **Note App ID** → Shown on the app page
+3. **Install app** → Click "Install App" → Select your repository
+4. **Note Installation ID** → From URL: `github.com/settings/installations/XXXXXXXX`
+
+**Store GitHub App secrets:**
+```bash
+cd ~/Downloads
+gh secret set ARGOCD_APP_PRIVATE_KEY < your-app-name.*.private-key.pem
+gh secret set ARGOCD_APP_ID -b "YOUR_APP_ID"
+gh secret set ARGOCD_APP_INSTALLATION_ID -b "YOUR_INSTALLATION_ID"
+```
+
+#### 1.4 Deploy Infrastructure
+```bash
+# Option 1: Via GitHub Actions (Recommended)
+git add .
+git commit -m "Initial deployment"
+git push origin main
+# GitHub Actions will deploy automatically
+
+# Option 2: Manual Terraform
+cd terraform
+terraform init
+terraform plan
+terraform apply
+```
+
+**Expected Output:**
+- EKS cluster: `eks-gitops-lab`
+- VPC with public/private subnets
+- RDS PostgreSQL database
+- IAM roles and policies
+- S3 bucket for state
+
+### 🚀 Step 2: Application Deployment (Kubernetes)
+
+#### 2.1 Configure kubectl
+```bash
+# Update kubeconfig
+aws eks update-kubeconfig --name eks-gitops-lab --region eu-central-1
+
+# Verify cluster access
+kubectl get nodes
+```
+
+#### 2.2 Deploy via ArgoCD (GitOps)
+```bash
+# ArgoCD is automatically installed by Terraform
+# Applications are automatically deployed via app-of-apps pattern
+
+# Check ArgoCD applications
+kubectl get applications -n argocd
+
+# Expected applications:
+# - istio-base, istiod, istio-gateway (service mesh)
+# - tbyte-microservices (main application)
+# - external-secrets (secrets management)
+# - kube-prometheus-stack (monitoring)
+```
+
+#### 2.3 Manual Deployment (Alternative)
+```bash
+# If GitOps is not working, deploy manually:
+
+# 1. Deploy Istio service mesh
+helm install istio-base ./apps/istio-base -n istio-system --create-namespace
+helm install istiod ./apps/istiod -n istio-system
+helm install istio-gateway ./apps/istio-gateway -n istio-system
+
+# 2. Deploy main application
+helm install tbyte ./apps/tbyte-microservices -n tbyte --create-namespace
+
+# 3. Deploy monitoring
+helm install prometheus ./apps/kube-prometheus-stack -n monitoring --create-namespace
+```
+
+### 🧪 Step 3: Validation & Testing
+
+#### 3.1 Infrastructure Validation
+```bash
+# Check EKS cluster
+kubectl cluster-info
+
+# Check nodes
+kubectl get nodes -o wide
+
+# Check namespaces
+kubectl get namespaces
+```
+
+#### 3.2 Application Validation
+```bash
+# Check all pods are running
+kubectl get pods --all-namespaces
+
+# Check services
+kubectl get svc --all-namespaces
+
+# Check ingress/load balancer
+kubectl get svc -n istio-system istio-gateway
+```
+
+#### 3.3 End-to-End Testing
+```bash
+# Get LoadBalancer IP
+LB_IP=$(kubectl get svc istio-gateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+echo "LoadBalancer IP: $LB_IP"
+
+# Add to hosts file
+echo "$LB_IP tbyte.local" | sudo tee -a /etc/hosts
+
+# Test frontend
+curl -H "Host: tbyte.local" http://$LB_IP/ | head -5
+
+# Test backend API
+curl -H "Host: tbyte.local" http://$LB_IP/api/health | jq .
+curl -H "Host: tbyte.local" http://$LB_IP/api/users | jq .
+```
+
+**Expected Results:**
+- Frontend: HTML dashboard
+- Health API: `{"status":"healthy","service":"tbyte-backend","version":"1.0.0"}`
+- Users API: Array of 3 users from PostgreSQL
+
+### 🔧 Step 4: Access Management Tools
+
+#### 4.1 ArgoCD UI
+```bash
+# Port forward to ArgoCD
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+# Get admin password
+kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d
+
+# Access UI
+open https://localhost:8080
+# Username: admin
+# Password: (from above command)
+```
+
+#### 4.2 Grafana Monitoring
+```bash
+# Port forward to Grafana
+kubectl port-forward svc/kube-prometheus-stack-grafana -n monitoring 3000:80
+
+# Get admin password
+kubectl get secret kube-prometheus-stack-grafana -n monitoring -o jsonpath="{.data.admin-password}" | base64 -d
+
+# Access UI
+open http://localhost:3000
+# Username: admin
+# Password: (from above command)
+```
+
+#### 4.3 Prometheus Metrics
+```bash
+# Port forward to Prometheus
+kubectl port-forward svc/kube-prometheus-stack-prometheus -n monitoring 9090:9090
+
+# Access UI
+open http://localhost:9090
+```
+
+### 🌍 Step 5: Environment Promotion (Optional)
+
+#### 5.1 Deploy to Multiple Environments
+```bash
+# Development environment
+helm install tbyte-dev ./apps/tbyte-microservices \
+  -f environments/dev/values.yaml \
+  --namespace dev --create-namespace
+
+# Staging environment
+helm install tbyte-staging ./apps/tbyte-microservices \
+  -f environments/staging/values.yaml \
+  --namespace staging --create-namespace
+
+# Production (current working environment)
+# Already deployed in 'tbyte' namespace
+```
+
+#### 5.2 Test Environment Promotion Pipeline
+```bash
+# Create a feature branch
+git checkout -b feature/test-promotion
+
+# Make a change
+echo "# Test change" >> README.md
+git add . && git commit -m "Test promotion pipeline"
+
+# Push and create PR (triggers dev deployment)
+git push origin feature/test-promotion
+gh pr create --title "Test Environment Promotion"
+
+# Merge PR (triggers staging → production pipeline)
+gh pr merge --merge
+```
+
+## 🔒 Security & Credentials
+
+### No Stored Credentials
+This solution uses **federated authentication** with no stored AWS credentials:
+
+- ✅ **GitHub OIDC**: Temporary tokens for CI/CD
+- ✅ **IRSA**: IAM roles for Kubernetes service accounts
+- ✅ **External Secrets**: AWS Secrets Manager integration
+- ✅ **Encrypted State**: S3 backend with encryption
+
+### Required Permissions
+The deployment requires these AWS permissions:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "eks:*",
+        "ec2:*",
+        "rds:*",
+        "iam:*",
+        "s3:*",
+        "secretsmanager:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+### Test Account Setup
+For testing, create a dedicated AWS account:
+```bash
+# 1. Create new AWS account
+# 2. Create IAM user with above permissions
+# 3. Configure AWS CLI
+aws configure
+# Access Key ID: [Your Access Key]
+# Secret Access Key: [Your Secret Key]
+# Default region: eu-central-1
+# Default output format: json
+```
+
+## 🧹 Cleanup
+
+### Complete Infrastructure Cleanup
+```bash
+# Option 1: Via GitHub Actions
+gh workflow run terraform-destroy.yml -f confirm=destroy
+
+# Option 2: Manual cleanup
+cd terraform
+terraform destroy
+
+# Clean up S3 backend
+./scripts/cleanup-all.sh
+```
+
+### Application-Only Cleanup
+```bash
+# Remove applications, keep infrastructure
+kubectl delete applications --all -n argocd
+
+# Or remove specific environments
+helm uninstall tbyte-dev -n dev
+helm uninstall tbyte-staging -n staging
+```
+
+## 📊 Cost Estimation
+
+### Current Deployment (~$175/month)
+- **EKS Control Plane**: $73/month
+- **EC2 Instances**: 2 x t3.medium (~$60/month)
+- **RDS PostgreSQL**: db.t3.micro (~$13/month)
+- **NAT Gateway**: ~$32/month
+- **Storage & Networking**: ~$10/month
+
+### Multi-Environment (~$525/month)
+- **3x Infrastructure**: $175 × 3 = $525/month
+- **Shared Services**: Monitoring, ArgoCD (included)
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### 1. EKS Cluster Access Denied
+```bash
+# Update kubeconfig
+aws eks update-kubeconfig --name eks-gitops-lab --region eu-central-1
+
+# Check AWS credentials
+aws sts get-caller-identity
+```
+
+#### 2. Pods Stuck in Pending
+```bash
+# Check node capacity
+kubectl describe nodes
+
+# Check pod events
+kubectl describe pod <pod-name> -n <namespace>
+
+# Scale cluster if needed (Karpenter will auto-provision)
+```
+
+#### 3. Application Not Accessible
+```bash
+# Check LoadBalancer status
+kubectl get svc istio-gateway -n istio-system
+
+# Check DNS resolution
+nslookup tbyte.local
+
+# Check Istio configuration
+kubectl get gateway,virtualservice -n istio-system
+```
+
+#### 4. ArgoCD Sync Issues
+```bash
+# Check application status
+kubectl get applications -n argocd
+
+# Force refresh
+kubectl patch application <app-name> -n argocd --type merge -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"hard"}}}'
+
+# Check ArgoCD logs
+kubectl logs -n argocd -l app.kubernetes.io/name=argocd-server
+```
+
+### Support Resources
+- **Documentation**: `docs/` directory
+- **Troubleshooting Guides**: `docs/*-troubleshooting.md`
+- **Demo Script**: `DEMO_SCRIPT.md`
+- **Assessment Checklist**: `ASSESSMENT_CHECKLIST.md`
+
+## 📚 Architecture Documentation
+
+### Technical Documents
+- **[Technical Document](docs/assessment/TECHNICAL_DOCUMENT.md)** - Complete solution overview
+- **[Presentation Deck](docs/assessment/PRESENTATION.md)** - 8-slide executive summary
+- **[Architecture Decisions](docs/assessment/)** - Design rationale and trade-offs
+
+### Implementation Guides
+- **[Zero-Downtime Deployment](docs/assessment/ZERO_DOWNTIME_DEPLOYMENT.md)**
+- **[Environment Promotion](docs/assessment/ENVIRONMENT_PROMOTION.md)**
+- **[OpenTelemetry Strategy](docs/assessment/OPENTELEMETRY_STRATEGY.md)**
+
+## 🎯 Assessment Compliance
+
+This solution addresses all assessment requirements:
+
+### ✅ Section A - Kubernetes
+- **A1**: Production microservices with all required components
+- **A2**: Comprehensive troubleshooting documentation
+
+### ✅ Section B - AWS
+- **B1**: Highly available architecture with all components
+- **B2**: AWS infrastructure troubleshooting scenarios
+- **B3**: Complete CI/CD pipeline with environment promotion
+
+### ✅ Section C - Terraform
+- **C1**: Modular Terraform with all required modules
+- **C2**: Terraform troubleshooting and state management
+
+### ✅ Section D - Observability
+- **D1**: Complete monitoring stack with Prometheus, Grafana, Loki
+- **D2**: Performance troubleshooting and optimization guides
+
+### ✅ Section E - System Design
+- **E1**: Zero-downtime deployment with GitOps
+- **E2**: Comprehensive security implementation
+
+### ✅ Section F - Documentation
+- **F1**: Professional technical documentation
+- **F2**: Executive presentation deck
+
+---
+
+**Assessment Status**: ✅ **COMPLETE**  
+**Infrastructure**: ✅ **DEPLOYED**  
+**Applications**: ✅ **RUNNING**  
+**Documentation**: ✅ **AVAILABLE**
+
+For questions or issues, refer to the troubleshooting guides or create an issue in this repository.
+
 ## 🎯 Assessment Overview
 
 This repository contains a complete DevOps solution demonstrating:

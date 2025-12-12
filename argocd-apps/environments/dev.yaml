@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tbyte-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/chiju/tbyte
+    path: apps/tbyte-microservices
+    targetRevision: HEAD
+    helm:
+      valueFiles:
+      - ../../environments/dev/values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

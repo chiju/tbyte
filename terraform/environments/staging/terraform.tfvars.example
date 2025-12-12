@@ -1,0 +1,30 @@
+# Staging Environment Configuration
+environment = "staging"
+aws_account_id = "222222222222"  # Replace with actual staging account ID
+
+# EKS Configuration
+cluster_name = "eks-staging"
+kubernetes_version = "1.34"
+
+# Node Group Configuration
+instance_types = ["t3.medium"]
+min_nodes = 2
+max_nodes = 5
+desired_nodes = 2
+
+# Database Configuration
+db_instance_class = "db.t3.small"
+db_allocated_storage = 50
+db_backup_retention_period = 7
+
+# Networking
+vpc_cidr = "10.2.0.0/16"
+availability_zones = ["eu-central-1a", "eu-central-1b"]
+
+# Production-like Settings
+enable_spot_instances = false
+enable_cluster_autoscaler = true
+
+# Monitoring
+enable_detailed_monitoring = true
+log_retention_days = 30

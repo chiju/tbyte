@@ -1,0 +1,28 @@
+frontend:
+  replicaCount: 1
+  image:
+    tag: "dev-latest"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  ingress:
+    host: dev.tbyte.local
+
+backend:
+  replicaCount: 1
+  image:
+    tag: "dev-latest"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+environment: dev
+namespace: dev

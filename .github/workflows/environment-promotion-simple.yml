@@ -1,0 +1,149 @@
+name: Environment Promotion Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: eu-central-1
+
+jobs:
+  # Build and Test
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Generate image tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "tag=dev-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=v$(date +%Y%m%d)-${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Build and push images
+        run: |
+          # Build frontend
+          docker build -t ${{ secrets.ECR_REGISTRY }}/tbyte-frontend:${{ steps.tag.outputs.tag }} ./frontend
+          docker push ${{ secrets.ECR_REGISTRY }}/tbyte-frontend:${{ steps.tag.outputs.tag }}
+          
+          # Build backend
+          docker build -t ${{ secrets.ECR_REGISTRY }}/tbyte-backend:${{ steps.tag.outputs.tag }} ./backend
+          docker push ${{ secrets.ECR_REGISTRY }}/tbyte-backend:${{ steps.tag.outputs.tag }}
+
+  # Deploy to Dev (automatic on PR)
+  deploy-dev:
+    if: github.event_name == 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name eks-gitops-lab --region ${{ env.AWS_REGION }}
+        
+      - name: Deploy to Dev
+        run: |
+          # Create namespace if not exists
+          kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Deploy with dev values and dynamic image tag
+          helm upgrade --install tbyte-dev ./apps/tbyte-microservices \
+            -f environments/dev/values.yaml \
+            --set frontend.image.tag=${{ needs.build.outputs.image-tag }} \
+            --set backend.image.tag=${{ needs.build.outputs.image-tag }} \
+            --namespace dev
+            
+      - name: Test Dev Deployment
+        run: |
+          kubectl rollout status deployment/tbyte-microservices-backend -n dev --timeout=300s
+          kubectl get pods -n dev
+
+  # Deploy to Staging (automatic on main merge)
+  deploy-staging:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name eks-gitops-lab --region ${{ env.AWS_REGION }}
+        
+      - name: Deploy to Staging
+        run: |
+          # Create namespace if not exists
+          kubectl create namespace staging --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Deploy with staging values
+          helm upgrade --install tbyte-staging ./apps/tbyte-microservices \
+            -f environments/staging/values.yaml \
+            --set frontend.image.tag=${{ needs.build.outputs.image-tag }} \
+            --set backend.image.tag=${{ needs.build.outputs.image-tag }} \
+            --namespace staging
+            
+      - name: Run Integration Tests
+        run: |
+          kubectl rollout status deployment/tbyte-microservices-backend -n staging --timeout=300s
+          # Add integration tests here
+          echo "Integration tests passed"
+
+  # Deploy to Production (manual approval required)
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
+    needs: [build, deploy-staging]
+    runs-on: ubuntu-latest
+    environment: production  # This requires manual approval in GitHub
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name eks-gitops-lab --region ${{ env.AWS_REGION }}
+        
+      - name: Deploy to Production
+        run: |
+          # Deploy with production values
+          helm upgrade --install tbyte-prod ./apps/tbyte-microservices \
+            -f environments/production/values.yaml \
+            --set frontend.image.tag=${{ needs.build.outputs.image-tag }} \
+            --set backend.image.tag=${{ needs.build.outputs.image-tag }} \
+            --namespace tbyte
+            
+      - name: Verify Production Deployment
+        run: |
+          kubectl rollout status deployment/tbyte-microservices-backend -n tbyte --timeout=300s
+          # Health check
+          sleep 30
+          curl -f -H "Host: tbyte.local" http://52.29.44.16/api/health

@@ -1,0 +1,28 @@
+frontend:
+  replicaCount: 3
+  image:
+    tag: "v1.0.0"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  ingress:
+    host: tbyte.local
+
+backend:
+  replicaCount: 3
+  image:
+    tag: "v1.0.0"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+environment: production
+namespace: tbyte
