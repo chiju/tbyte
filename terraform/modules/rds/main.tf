@@ -57,6 +57,23 @@ resource "random_password" "postgres_password" {
   special = true
 }
 
+# Parameter group to disable SSL for development
+resource "aws_db_parameter_group" "postgres" {
+  family = "postgres15"
+  name   = "${var.cluster_name}-postgres-params"
+
+  parameter {
+    name  = "rds.force_ssl"
+    value = "0"
+  }
+
+  tags = {
+    Name        = "${var.cluster_name}-postgres-params"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
 # Store password in AWS Secrets Manager
 resource "aws_secretsmanager_secret" "postgres_password" {
   name                    = "${var.cluster_name}-postgres-password"
@@ -76,7 +93,7 @@ resource "aws_secretsmanager_secret_version" "postgres_password" {
     username = var.db_username
     password = random_password.postgres_password.result
     engine   = "postgres"
-    host     = aws_db_instance.postgres.endpoint
+    host     = aws_db_instance.postgres.address
     port     = aws_db_instance.postgres.port
     dbname   = aws_db_instance.postgres.db_name
   })
@@ -106,6 +123,7 @@ resource "aws_db_instance" "postgres" {
   db_subnet_group_name   = aws_db_subnet_group.postgres.name
   vpc_security_group_ids = [aws_security_group.postgres.id]
   publicly_accessible    = false
+  parameter_group_name   = aws_db_parameter_group.postgres.name
 
   # High Availability (disabled for cost in test environment)
   multi_az = var.multi_az
