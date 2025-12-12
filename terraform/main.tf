@@ -49,12 +49,12 @@ module "eks" {
 module "rds" {
   source = "./modules/rds"
 
-  cluster_name               = var.cluster_name
-  environment                = "dev"
-  vpc_id                     = module.vpc.vpc_id
-  vpc_cidr                   = module.vpc.vpc_cidr
-  private_subnet_ids         = module.vpc.private_subnet_ids
-  eks_node_security_group_id = module.eks.node_security_group_id
+  cluster_name                  = var.cluster_name
+  environment                   = "dev"
+  vpc_id                        = module.vpc.vpc_id
+  vpc_cidr                      = module.vpc.vpc_cidr
+  private_subnet_ids            = module.vpc.private_subnet_ids
+  eks_cluster_security_group_id = module.eks.cluster_security_group_id
 
   # Database configuration
   postgres_version = "15.8"
