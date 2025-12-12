@@ -42,27 +42,27 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: rds-credentials
-                  key: DB_HOST
+                  key: host
             - name: DB_PORT
               valueFrom:
                 secretKeyRef:
                   name: rds-credentials
-                  key: DB_PORT
+                  key: port
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
                   name: rds-credentials
-                  key: DB_NAME
+                  key: dbname
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
                   name: rds-credentials
-                  key: DB_USERNAME
+                  key: username
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: rds-credentials
-                  key: DB_PASSWORD
+                  key: password
           livenessProbe:
             httpGet:
               path: /health
