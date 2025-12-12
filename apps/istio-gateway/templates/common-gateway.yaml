@@ -31,10 +31,38 @@ spec:
   # TByte App Routes
   - match:
     - uri:
-        prefix: /api/
+        exact: /api/health
       headers:
         host:
           exact: tbyte.local
+    rewrite:
+      uri: /health
+    route:
+    - destination:
+        host: tbyte-microservices-backend.tbyte.svc.cluster.local
+        port:
+          number: 3000
+  - match:
+    - uri:
+        exact: /api/users
+      headers:
+        host:
+          exact: tbyte.local
+    rewrite:
+      uri: /users
+    route:
+    - destination:
+        host: tbyte-microservices-backend.tbyte.svc.cluster.local
+        port:
+          number: 3000
+  - match:
+    - uri:
+        exact: /api/products
+      headers:
+        host:
+          exact: tbyte.local
+    rewrite:
+      uri: /products
     route:
     - destination:
         host: tbyte-microservices-backend.tbyte.svc.cluster.local
