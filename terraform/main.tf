@@ -57,7 +57,7 @@ module "rds" {
   eks_cluster_security_group_id = module.eks.cluster_security_group_id
 
   # Database configuration
-  postgres_version = "15.8"
+  postgres_version = "15.15"
   instance_class   = "db.t3.micro"
   db_name          = "tbyte"
   db_username      = "postgres"
