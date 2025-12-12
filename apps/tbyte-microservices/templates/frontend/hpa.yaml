@@ -14,10 +14,8 @@ spec:
   triggers:
   - type: cpu
     metadata:
-      metricType: Utilization
       value: "{{ .Values.frontend.autoscaling.targetCPUUtilizationPercentage | default 70 }}"
   - type: memory
     metadata:
-      metricType: Utilization
       value: "{{ .Values.frontend.autoscaling.targetMemoryUtilizationPercentage | default 80 }}"
 {{- end }}
