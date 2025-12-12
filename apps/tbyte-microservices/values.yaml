@@ -114,7 +114,7 @@ postgres:
 
 # Ingress Configuration (AWS ALB)
 ingress:
-  enabled: true  # Enable for assessment demonstration
+  enabled: false  # Disable ALB, use Istio Gateway instead
   className: "alb"
   annotations:
     kubernetes.io/ingress.class: alb

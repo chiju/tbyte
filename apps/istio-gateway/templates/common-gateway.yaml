@@ -1,0 +1,65 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: common-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*.local"  # Wildcard for all .local domains
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: common-routes
+  namespace: istio-system
+spec:
+  hosts:
+  - tbyte.local
+  - grafana.local
+  - kiali.local
+  - jaeger.local
+  gateways:
+  - common-gateway
+  http:
+  # TByte App Routes
+  - match:
+    - uri:
+        prefix: /api/
+      headers:
+        host:
+          exact: tbyte.local
+    route:
+    - destination:
+        host: tbyte-microservices-backend.tbyte.svc.cluster.local
+        port:
+          number: 3000
+  - match:
+    - uri:
+        prefix: /
+      headers:
+        host:
+          exact: tbyte.local
+    route:
+    - destination:
+        host: tbyte-microservices-frontend.tbyte.svc.cluster.local
+        port:
+          number: 80
+  # Grafana Route
+  - match:
+    - uri:
+        prefix: /
+      headers:
+        host:
+          exact: grafana.local
+    route:
+    - destination:
+        host: kube-prometheus-stack-grafana.monitoring.svc.cluster.local
+        port:
+          number: 80
