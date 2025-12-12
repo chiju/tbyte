@@ -1,0 +1,1 @@
+# ECR repositories created successfully
