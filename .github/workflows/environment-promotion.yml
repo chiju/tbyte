@@ -1,0 +1,101 @@
+name: Environment Promotion Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: eu-central-1
+
+jobs:
+  # Development Environment (Auto-deploy on PR)
+  deploy-dev:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Deploy to Dev
+        run: |
+          # Deploy to dev namespace with dev values
+          kubectl apply -k overlays/dev/
+          
+  # Staging Environment (Auto-deploy on main)
+  deploy-staging:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: staging
+    needs: [security-scan]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Deploy to Staging
+        run: |
+          # Deploy to staging namespace
+          kubectl apply -k overlays/staging/
+          
+      - name: Run Integration Tests
+        run: |
+          # Wait for deployment
+          kubectl rollout status deployment/tbyte-microservices-backend -n staging
+          # Run tests against staging
+          curl -f https://staging.tbyte.local/api/health
+          
+  # Production Environment (Manual approval required)
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    needs: [deploy-staging]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Deploy to Production
+        run: |
+          # Blue/Green deployment to production
+          kubectl apply -k overlays/production/
+          
+      - name: Health Check
+        run: |
+          kubectl rollout status deployment/tbyte-microservices-backend -n production
+          curl -f https://tbyte.local/api/health
+          
+  # Security Scanning (Required for staging/prod)
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
