@@ -1,0 +1,29 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "tbyte-microservices.fullname" . }}-vs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tbyte-microservices.labels" . | nindent 4 }}
+spec:
+  hosts:
+  - tbyte.local
+  gateways:
+  - istio-system/common-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api/
+    route:
+    - destination:
+        host: {{ include "tbyte-microservices.fullname" . }}-backend
+        port:
+          number: {{ .Values.backend.service.port }}
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: {{ include "tbyte-microservices.fullname" . }}-frontend
+        port:
+          number: {{ .Values.frontend.service.port }}
