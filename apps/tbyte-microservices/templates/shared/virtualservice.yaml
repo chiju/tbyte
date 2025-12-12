@@ -15,7 +15,9 @@ spec:
     - uri:
         prefix: /api/
     rewrite:
-      uri: /
+      uriRegexRewrite:
+        match: "^/api/(.*)"
+        rewrite: "/\\1"
     route:
     - destination:
         host: {{ include "tbyte-microservices.fullname" . }}-backend
