@@ -53,6 +53,19 @@ module "ecr" {
   environment  = var.environment
 }
 
+# IAM roles and policies for EKS workloads
+module "iam" {
+  source = "./modules/iam"
+
+  cluster_name           = var.cluster_name
+  environment           = var.environment
+  namespace             = "default"
+  service_account_name  = "${var.cluster_name}-backend"
+  rds_secret_arn        = module.rds.secret_arn
+
+  depends_on = [module.eks, module.rds]
+}
+
 # RDS PostgreSQL Database
 module "rds" {
   source = "./modules/rds"
