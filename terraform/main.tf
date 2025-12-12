@@ -45,6 +45,40 @@ module "eks" {
   depends_on = [module.vpc, null_resource.account_validation]
 }
 
+# RDS PostgreSQL Database
+module "rds" {
+  source = "./modules/rds"
+
+  cluster_name               = var.cluster_name
+  environment               = "dev"
+  vpc_id                    = module.vpc.vpc_id
+  vpc_cidr                  = module.vpc.vpc_cidr
+  private_subnet_ids        = module.vpc.private_subnet_ids
+  eks_node_security_group_id = module.eks.node_security_group_id
+
+  # Database configuration
+  postgres_version = "15.8"
+  instance_class   = "db.t3.micro"
+  db_name         = "tbyte"
+  db_username     = "postgres"
+
+  # Storage configuration
+  allocated_storage     = 20
+  max_allocated_storage = 100
+
+  # High availability (disabled for cost in test)
+  multi_az = false
+
+  # Backup configuration
+  backup_retention_period = 7
+
+  # Security (configured for easy cleanup in test)
+  deletion_protection  = false
+  skip_final_snapshot = true
+
+  depends_on = [module.vpc, module.eks]
+}
+
 # ArgoCD module - Using GitHub App for authentication
 module "argocd" {
   source = "./modules/argocd"

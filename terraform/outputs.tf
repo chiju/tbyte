@@ -73,3 +73,30 @@ output "ack_eks_controller_role_arn" {
 #   description = "Users created in Identity Center"
 #   value       = module.iam_identity_center.users_created
 # }
+
+# RDS Database Outputs
+output "rds_endpoint" {
+  description = "RDS PostgreSQL endpoint"
+  value       = module.rds.db_endpoint
+}
+
+output "rds_port" {
+  description = "RDS PostgreSQL port"
+  value       = module.rds.db_port
+}
+
+output "rds_database_name" {
+  description = "RDS database name"
+  value       = module.rds.db_name
+}
+
+output "rds_secrets_manager_arn" {
+  description = "ARN of Secrets Manager secret containing database credentials"
+  value       = module.rds.secrets_manager_secret_arn
+}
+
+output "rds_connection_info" {
+  description = "Database connection information for applications"
+  value       = module.rds.connection_info
+  sensitive   = true
+}
