@@ -7,7 +7,7 @@ global:
 frontend:
   enabled: true
   image:
-    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-frontend
+    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/eks-gitops-lab-frontend
     tag: "cbf80423"
     pullPolicy: Always
   
@@ -37,7 +37,7 @@ frontend:
 backend:
   enabled: true
   image:
-    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-backend
+    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/eks-gitops-lab-backend
     tag: "cbf80423"
     pullPolicy: Always
   
@@ -63,17 +63,21 @@ backend:
     targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 80
   
+  serviceAccount:
+    # IRSA - IAM Role for Service Account (populated by Terraform)
+    roleArn: "PLACEHOLDER_BACKEND_ROLE_ARN"
+  
   database:
-    # In-cluster PostgreSQL connection
-    host: postgres-service
+    # RDS PostgreSQL connection (populated by Terraform)
+    host: "PLACEHOLDER_RDS_ENDPOINT"
     port: 5432
     name: tbyte
     username: postgres
-    # RDS connection (alternative)
-    rds:
+    password: "PLACEHOLDER_RDS_PASSWORD"
+    # In-cluster PostgreSQL (for test requirements)
+    postgres_service:
       enabled: false
-      host: ""
-      port: 5432
+      host: postgres-service
 
 # PostgreSQL Configuration
 postgres:
@@ -108,9 +112,9 @@ postgres:
     username: postgres
     # Password will be generated
 
-# Ingress Configuration
+# Ingress Configuration (AWS ALB)
 ingress:
-  enabled: true
+  enabled: false  # Disable for now, use kubectl port-forward for testing
   className: "alb"
   annotations:
     kubernetes.io/ingress.class: alb

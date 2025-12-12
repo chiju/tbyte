@@ -60,3 +60,7 @@ output "connection_info" {
     secret_arn = aws_secretsmanager_secret.postgres_password.arn
   }
 }
+output "secret_arn" {
+  description = "ARN of the RDS password secret in AWS Secrets Manager"
+  value       = aws_secretsmanager_secret.postgres_password.arn
+}
