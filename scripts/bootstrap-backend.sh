@@ -2,7 +2,7 @@
 set -e
 
 # Variables
-BUCKET_NAME="eks-gitops-tfstate-$(openssl rand -hex 4)"
+BUCKET_NAME="tbyte-tfstate-$(openssl rand -hex 4)"
 REGION="eu-central-1"
 AWS_PROFILE="oth_infra"
 
@@ -54,7 +54,7 @@ cat > $BACKEND_FILE <<EOF
 terraform {
   backend "s3" {
     bucket       = "$BUCKET_NAME"
-    key          = "eks-gitops-lab.tfstate"
+    key          = "tbyte.tfstate"
     region       = "$REGION"
     encrypt      = true
     use_lockfile = true

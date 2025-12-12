@@ -6,7 +6,7 @@ GIT_REMOTE=$(git remote get-url origin)
 GITHUB_REPO=$(echo $GIT_REMOTE | sed 's/.*github.com[:/]\(.*\)\.git/\1/' | cut -d'/' -f2)
 GITHUB_ORG=$(echo $GIT_REMOTE | sed 's/.*github.com[:/]\(.*\)\.git/\1/' | cut -d'/' -f1)
 
-ROLE_NAME="GitHubActionsEKSRole"
+ROLE_NAME="TByteGitHubActionsRole"
 AWS_PROFILE="oth_infra"
 
 echo "🚀 Setting up AWS OIDC for GitHub Actions..."
