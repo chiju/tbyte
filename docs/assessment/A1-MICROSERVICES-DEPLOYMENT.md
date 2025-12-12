@@ -44,7 +44,7 @@ Production-ready Kubernetes deployment of a three-tier microservices application
 | Feature | Frontend | Backend | Implementation |
 |---------|----------|---------|----------------|
 | **Resource Limits** | ✅ | ✅ | CPU/Memory requests and limits |
-| **Health Probes** | ✅ | ✅ | HTTP readiness and liveness checks |
+| **Health Probes** | ✅ | ✅ | Startup, readiness, and liveness checks |
 | **Autoscaling** | ✅ | ✅ | KEDA ScaledObjects (CPU/Memory) |
 | **Availability** | ✅ | ✅ | PodDisruptionBudgets |
 | **Security** | ✅ | ✅ | NetworkPolicies for micro-segmentation |
@@ -122,6 +122,14 @@ strategy:
 
 **Health Check Strategy:**
 ```yaml
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  failureThreshold: 6    # 40s max startup time
+
 readinessProbe:
   httpGet:
     path: /health
@@ -136,6 +144,11 @@ livenessProbe:
   initialDelaySeconds: 30
   periodSeconds: 10
 ```
+
+**Three-Probe Strategy:**
+- **Startup Probe**: Handles slow container initialization (DB connections)
+- **Readiness Probe**: Controls traffic routing during deployments  
+- **Liveness Probe**: Restarts unhealthy containers
 
 **Availability Protection:**
 ```yaml
