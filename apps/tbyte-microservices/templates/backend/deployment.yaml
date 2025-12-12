@@ -63,6 +63,8 @@ spec:
                 secretKeyRef:
                   name: rds-credentials
                   key: password
+            - name: DB_SSL
+              value: "true"
           livenessProbe:
             httpGet:
               path: /health
