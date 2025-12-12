@@ -13,7 +13,7 @@ spec:
   http:
   - match:
     - uri:
-        exact: /backend-health
+        prefix: /backend-health
     route:
     - destination:
         host: {{ include "tbyte-microservices.fullname" . }}-backend
@@ -21,29 +21,9 @@ spec:
           number: {{ .Values.backend.service.port }}
   - match:
     - uri:
-        exact: /api/health
+        prefix: /api/
     rewrite:
-      uri: /health
-    route:
-    - destination:
-        host: {{ include "tbyte-microservices.fullname" . }}-backend
-        port:
-          number: {{ .Values.backend.service.port }}
-  - match:
-    - uri:
-        exact: /api/users
-    rewrite:
-      uri: /users
-    route:
-    - destination:
-        host: {{ include "tbyte-microservices.fullname" . }}-backend
-        port:
-          number: {{ .Values.backend.service.port }}
-  - match:
-    - uri:
-        exact: /api/products
-    rewrite:
-      uri: /products
+      uri: /
     route:
     - destination:
         host: {{ include "tbyte-microservices.fullname" . }}-backend
