@@ -100,3 +100,13 @@ output "rds_connection_info" {
   value       = module.rds.connection_info
   sensitive   = true
 }
+# ECR Repository URLs
+output "frontend_ecr_url" {
+  description = "Frontend ECR repository URL"
+  value       = module.ecr.frontend_repository_url
+}
+
+output "backend_ecr_url" {
+  description = "Backend ECR repository URL"
+  value       = module.ecr.backend_repository_url
+}

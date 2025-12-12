@@ -45,6 +45,14 @@ module "eks" {
   depends_on = [module.vpc, null_resource.account_validation]
 }
 
+# ECR repositories for container images
+module "ecr" {
+  source = "./modules/ecr"
+
+  cluster_name = var.cluster_name
+  environment  = var.environment
+}
+
 # RDS PostgreSQL Database
 module "rds" {
   source = "./modules/rds"
