@@ -1,0 +1,105 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - '.github/workflows/build-images.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+
+env:
+  AWS_REGION: eu-central-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsEKSRole
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, tag, and push frontend image
+      working-directory: ./src/frontend
+      run: |
+        IMAGE_TAG=${GITHUB_SHA::8}
+        docker build -t $ECR_REGISTRY/tbyte-frontend:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/tbyte-frontend:latest .
+        docker push $ECR_REGISTRY/tbyte-frontend:$IMAGE_TAG
+        docker push $ECR_REGISTRY/tbyte-frontend:latest
+        echo "IMAGE_URI=$ECR_REGISTRY/tbyte-frontend:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  build-backend:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsEKSRole
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, tag, and push backend image
+      working-directory: ./src/backend
+      run: |
+        IMAGE_TAG=${GITHUB_SHA::8}
+        docker build -t $ECR_REGISTRY/tbyte-backend:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/tbyte-backend:latest .
+        docker push $ECR_REGISTRY/tbyte-backend:$IMAGE_TAG
+        docker push $ECR_REGISTRY/tbyte-backend:latest
+        echo "IMAGE_URI=$ECR_REGISTRY/tbyte-backend:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  update-manifests:
+    needs: [build-frontend, build-backend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Update Helm values with new image tags
+      run: |
+        IMAGE_TAG=${GITHUB_SHA::8}
+        sed -i "s|repository: .*tbyte-frontend|repository: $ECR_REGISTRY/tbyte-frontend|g" apps/tbyte-microservices/values.yaml
+        sed -i "s|repository: .*tbyte-backend|repository: $ECR_REGISTRY/tbyte-backend|g" apps/tbyte-microservices/values.yaml
+        sed -i "s|tag: \".*\"|tag: \"$IMAGE_TAG\"|g" apps/tbyte-microservices/values.yaml
+
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add apps/tbyte-microservices/values.yaml
+        git commit -m "chore: update image tags to ${GITHUB_SHA::8}" || exit 0
+        git push
