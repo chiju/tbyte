@@ -13,6 +13,14 @@ spec:
   http:
   - match:
     - uri:
+        exact: /backend-health
+    route:
+    - destination:
+        host: {{ include "tbyte-microservices.fullname" . }}-backend
+        port:
+          number: {{ .Values.backend.service.port }}
+  - match:
+    - uri:
         exact: /api/health
     rewrite:
       uri: /health
