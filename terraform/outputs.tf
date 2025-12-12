@@ -110,3 +110,8 @@ output "backend_ecr_url" {
   description = "Backend ECR repository URL"
   value       = module.ecr.backend_repository_url
 }
+# IAM Outputs
+output "eso_role_arn" {
+  description = "ARN of the External Secrets Operator IAM role"
+  value       = module.iam.eso_role_arn
+}
