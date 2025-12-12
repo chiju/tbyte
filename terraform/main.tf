@@ -50,17 +50,17 @@ module "rds" {
   source = "./modules/rds"
 
   cluster_name               = var.cluster_name
-  environment               = "dev"
-  vpc_id                    = module.vpc.vpc_id
-  vpc_cidr                  = module.vpc.vpc_cidr
-  private_subnet_ids        = module.vpc.private_subnet_ids
+  environment                = "dev"
+  vpc_id                     = module.vpc.vpc_id
+  vpc_cidr                   = module.vpc.vpc_cidr
+  private_subnet_ids         = module.vpc.private_subnet_ids
   eks_node_security_group_id = module.eks.node_security_group_id
 
   # Database configuration
   postgres_version = "15.8"
   instance_class   = "db.t3.micro"
-  db_name         = "tbyte"
-  db_username     = "postgres"
+  db_name          = "tbyte"
+  db_username      = "postgres"
 
   # Storage configuration
   allocated_storage     = 20
@@ -73,7 +73,7 @@ module "rds" {
   backup_retention_period = 7
 
   # Security (configured for easy cleanup in test)
-  deletion_protection  = false
+  deletion_protection = false
   skip_final_snapshot = true
 
   depends_on = [module.vpc, module.eks]

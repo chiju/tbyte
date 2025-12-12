@@ -53,10 +53,10 @@ output "secrets_manager_secret_name" {
 output "connection_info" {
   description = "Database connection information for applications"
   value = {
-    host     = aws_db_instance.postgres.endpoint
-    port     = aws_db_instance.postgres.port
-    database = aws_db_instance.postgres.db_name
-    username = aws_db_instance.postgres.username
+    host       = aws_db_instance.postgres.endpoint
+    port       = aws_db_instance.postgres.port
+    database   = aws_db_instance.postgres.db_name
+    username   = aws_db_instance.postgres.username
     secret_arn = aws_secretsmanager_secret.postgres_password.arn
   }
 }

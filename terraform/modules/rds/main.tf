@@ -112,12 +112,12 @@ resource "aws_db_instance" "postgres" {
 
   # Backup configuration
   backup_retention_period = var.backup_retention_period
-  backup_window          = "03:00-04:00"  # UTC
-  maintenance_window     = "sun:04:00-sun:05:00"  # UTC
+  backup_window           = "03:00-04:00"         # UTC
+  maintenance_window      = "sun:04:00-sun:05:00" # UTC
 
   # Security
-  deletion_protection = var.deletion_protection
-  skip_final_snapshot = var.skip_final_snapshot
+  deletion_protection       = var.deletion_protection
+  skip_final_snapshot       = var.skip_final_snapshot
   final_snapshot_identifier = var.skip_final_snapshot ? null : "${var.cluster_name}-postgres-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
 
   tags = {
