@@ -59,6 +59,11 @@ output "karpenter_sqs_queue_name" {
   value       = aws_sqs_queue.karpenter.name
 }
 
+output "cluster_security_group_id" {
+  description = "EKS cluster security group ID"
+  value       = aws_eks_cluster.eks_cluster_lrn.vpc_config[0].cluster_security_group_id
+}
+
 output "ack_eks_controller_role_arn" {
   description = "IAM role ARN for ACK EKS controller"
   value       = aws_iam_role.ack_eks_controller_role.arn
