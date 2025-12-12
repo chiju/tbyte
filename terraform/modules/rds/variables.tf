@@ -32,7 +32,7 @@ variable "eks_cluster_security_group_id" {
 variable "postgres_version" {
   description = "PostgreSQL version"
   type        = string
-  default     = "15.8"
+  default     = "15.15"
 
   validation {
     condition     = can(regex("^[0-9]+\\.[0-9]+$", var.postgres_version))
