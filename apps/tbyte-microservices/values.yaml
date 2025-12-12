@@ -69,7 +69,7 @@ backend:
   
   database:
     # RDS PostgreSQL connection (populated by Terraform)
-    host: "PLACEHOLDER_RDS_ENDPOINT"
+    host: "eks-gitops-lab-postgres.cpqeiqssqbrb.eu-central-1.rds.amazonaws.com"
     port: 5432
     name: tbyte
     username: postgres

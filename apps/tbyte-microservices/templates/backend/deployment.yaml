@@ -39,18 +39,30 @@ spec:
             - name: PORT
               value: "{{ .Values.backend.service.targetPort }}"
             - name: DB_HOST
-              value: "{{ .Values.backend.database.host }}"
+              valueFrom:
+                secretKeyRef:
+                  name: rds-credentials
+                  key: DB_HOST
             - name: DB_PORT
-              value: "{{ .Values.backend.database.port }}"
+              valueFrom:
+                secretKeyRef:
+                  name: rds-credentials
+                  key: DB_PORT
             - name: DB_NAME
-              value: "{{ .Values.backend.database.name }}"
+              valueFrom:
+                secretKeyRef:
+                  name: rds-credentials
+                  key: DB_NAME
             - name: DB_USER
-              value: "{{ .Values.backend.database.username }}"
+              valueFrom:
+                secretKeyRef:
+                  name: rds-credentials
+                  key: DB_USERNAME
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "tbyte-microservices.fullname" . }}-backend-secret
-                  key: db-password
+                  name: rds-credentials
+                  key: DB_PASSWORD
           livenessProbe:
             httpGet:
               path: /health
