@@ -1,8 +1,30 @@
 # TByte - DevOps Assessment Solution
 
+**🎉 LIVE APPLICATION AVAILABLE**  
+**URL**: http://tbyte.local (add `52.29.44.16 tbyte.local` to /etc/hosts)
+
 **Production-ready microservices platform on AWS EKS with GitOps automation**
 
 [![Infrastructure](https://github.com/chiju/tbyte/actions/workflows/terraform.yml/badge.svg)](https://github.com/chiju/tbyte/actions/workflows/terraform.yml)
+
+## 🚀 Quick Demo
+
+```bash
+# Setup access
+echo "52.29.44.16 tbyte.local" | sudo tee -a /etc/hosts
+
+# Frontend web app
+open http://tbyte.local
+
+# Backend API endpoints
+curl -H "Host: tbyte.local" http://52.29.44.16/api/health | jq .
+curl -H "Host: tbyte.local" http://52.29.44.16/api/users | jq .
+```
+
+**What you'll see:**
+- ✅ Clean web dashboard with live backend status
+- ✅ Health endpoint returning service info
+- ✅ User data from PostgreSQL RDS database
 
 ## 🎯 Assessment Overview
 
