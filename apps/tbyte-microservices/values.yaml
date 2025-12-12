@@ -7,7 +7,7 @@ global:
 frontend:
   enabled: true
   image:
-    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-frontend
+    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/eks-gitops-lab-frontend
     tag: "latest"
     pullPolicy: Always
   
@@ -37,7 +37,7 @@ frontend:
 backend:
   enabled: true
   image:
-    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-backend
+    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/eks-gitops-lab-backend
     tag: "latest"
     pullPolicy: Always
   
@@ -64,16 +64,15 @@ backend:
     targetMemoryUtilizationPercentage: 80
   
   database:
-    # In-cluster PostgreSQL connection
-    host: postgres-service
+    # Use RDS PostgreSQL for production
+    host: eks-gitops-lab-postgres.cpqeiqssqbrb.eu-central-1.rds.amazonaws.com
     port: 5432
     name: tbyte
     username: postgres
-    # RDS connection (alternative)
-    rds:
+    # In-cluster PostgreSQL (for test requirements)
+    postgres_service:
       enabled: false
-      host: ""
-      port: 5432
+      host: postgres-service
 
 # PostgreSQL Configuration
 postgres:
