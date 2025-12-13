@@ -279,6 +279,10 @@ jobs:
 
       - name: Deploy Dev Environment
         working-directory: terragrunt/environments/dev
+        env:
+          TF_VAR_github_app_id: ${{ secrets.ARGOCD_APP_ID }}
+          TF_VAR_github_app_installation_id: ${{ secrets.ARGOCD_APP_INSTALLATION_ID }}
+          TF_VAR_github_app_private_key: ${{ secrets.ARGOCD_APP_PRIVATE_KEY }}
         run: |
           echo "🚀 Deploying Dev Environment..."
           terragrunt run-all apply --terragrunt-non-interactive --auto-approve

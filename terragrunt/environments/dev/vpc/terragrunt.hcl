@@ -6,13 +6,8 @@ terraform {
   source = "../../../modules/vpc"
 }
 
-dependency "bootstrap" {
-  config_path = "../../../bootstrap"
-}
-
 inputs = {
   environment        = "dev"
-  assume_role_arn    = dependency.bootstrap.outputs.dev_account_role_arn
   cluster_name       = "tbyte-dev"
   cidr               = "10.0.0.0/16"
   availability_zones = ["eu-central-1a", "eu-central-1b"]
