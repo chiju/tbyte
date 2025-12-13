@@ -10,15 +10,6 @@ dependency "bootstrap" {
   config_path = "../../../bootstrap"
 }
 
-dependency "iam" {
-  config_path = "../iam"
-  
-  mock_outputs_allowed_terraform_commands = ["plan", "validate"]
-  mock_outputs = {
-    github_actions_role_arn = "arn:aws:iam::123456789012:role/mock-role"
-  }
-}
-
 dependency "eks" {
   config_path = "../eks"
   
@@ -37,4 +28,12 @@ inputs = {
   cluster_name    = dependency.eks.outputs.cluster_name
   cluster_endpoint = dependency.eks.outputs.cluster_endpoint
   cluster_certificate_authority_data = dependency.eks.outputs.cluster_certificate_authority_data
+  
+  # ArgoCD configuration
+  git_repo_url                = "https://github.com/chiju/tbyte.git"
+  git_target_revision         = "main"
+  git_apps_path              = "argocd-apps"
+  github_app_id              = "123456"  # Replace with actual GitHub App ID
+  github_app_installation_id = "12345678"  # Replace with actual installation ID
+  github_app_private_key     = "dummy-key"  # Replace with actual private key
 }
