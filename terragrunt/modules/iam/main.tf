@@ -3,14 +3,16 @@
 
 # Data sources - conditional to allow planning without existing cluster
 data "aws_eks_cluster" "cluster" {
-  count = var.cluster_oidc_issuer_url == "" ? 0 : 1
+  count = can(regex("MOCK", var.cluster_oidc_issuer_url)) ? 0 : 1
   name  = var.cluster_name
 }
 
 data "aws_caller_identity" "current" {}
 
 locals {
-  oidc_issuer_url = var.cluster_oidc_issuer_url != "" ? replace(var.cluster_oidc_issuer_url, "https://", "") : replace(data.aws_eks_cluster.cluster[0].identity[0].oidc[0].issuer, "https://", "")
+  oidc_issuer_url = can(regex("MOCK", var.cluster_oidc_issuer_url)) ? 
+    replace(var.cluster_oidc_issuer_url, "https://", "") : 
+    replace(data.aws_eks_cluster.cluster[0].identity[0].oidc[0].issuer, "https://", "")
 }
 
 # IRSA Role for Backend Service
