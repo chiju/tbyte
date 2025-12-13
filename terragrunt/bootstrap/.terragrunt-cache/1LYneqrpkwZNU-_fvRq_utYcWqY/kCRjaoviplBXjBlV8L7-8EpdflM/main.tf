@@ -1,4 +1,4 @@
-# Bootstrap Module: Creates AWS accounts, S3 buckets, and GitHub OIDC
+# Bootstrap Module: Creates AWS accounts, OU, and GitHub OIDC
 
 data "aws_caller_identity" "current" {}
 data "aws_organizations_organization" "current" {}
@@ -9,43 +9,27 @@ resource "aws_organizations_organizational_unit" "tbyte" {
   parent_id = data.aws_organizations_organization.current.roots[0].id
 }
 
-# S3 buckets for Terragrunt state
+# Import existing S3 bucket
 resource "aws_s3_bucket" "terragrunt_state" {
   bucket = "tbyte-terragrunt-state-${data.aws_caller_identity.current.account_id}"
-}
-
-resource "aws_s3_bucket_versioning" "terragrunt_state" {
-  bucket = aws_s3_bucket.terragrunt_state.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "terragrunt_state" {
-  bucket = aws_s3_bucket.terragrunt_state.id
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
 }
 
 # Create AWS accounts in the OU
 resource "aws_organizations_account" "dev" {
   name      = "tbyte-dev"
-  email     = "aws+dev@${var.email_domain}"
+  email     = "aws+dev-tbyte@${var.email_domain}"
   parent_id = aws_organizations_organizational_unit.tbyte.id
 }
 
 resource "aws_organizations_account" "staging" {
   name      = "tbyte-staging"
-  email     = "aws+staging@${var.email_domain}"
+  email     = "aws+staging-tbyte@${var.email_domain}"
   parent_id = aws_organizations_organizational_unit.tbyte.id
 }
 
 resource "aws_organizations_account" "production" {
   name      = "tbyte-production"
-  email     = "aws+production@${var.email_domain}"
+  email     = "aws+production-tbyte@${var.email_domain}"
   parent_id = aws_organizations_organizational_unit.tbyte.id
 }
 
