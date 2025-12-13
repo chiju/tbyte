@@ -3,10 +3,10 @@ name: Infrastructure Deployment
 on:
   push:
     branches: [main]
-    paths: ['terragrunt/**']
+    paths: ['terragrunt/**', '.github/workflows/terragrunt.yml']
   pull_request:
     branches: [main]
-    paths: ['terragrunt/**']
+    paths: ['terragrunt/**', '.github/workflows/terragrunt.yml']
   workflow_dispatch:
 
 env:
