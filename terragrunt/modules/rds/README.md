@@ -1,112 +1,69 @@
-# RDS PostgreSQL Module
+# RDS Module
 
-Production-ready RDS PostgreSQL module for microservices architecture.
+Creates a PostgreSQL RDS instance with security groups and subnet groups.
 
-## Features
+## Resources Created
 
-- **Security**: Encrypted storage, VPC isolation, security groups
-- **High Availability**: Multi-AZ support (configurable)
-- **Monitoring**: Enhanced monitoring, Performance Insights
-- **Backup**: Automated backups with configurable retention
-- **Secrets**: AWS Secrets Manager integration
-- **Validation**: Input validation for all variables
+- RDS PostgreSQL instance
+- DB subnet group (private subnets)
+- Security group allowing access from EKS cluster
+- Random password for database
+- Parameter group for PostgreSQL optimization
 
 ## Usage
 
 ```hcl
-module "rds" {
-  source = "./modules/rds"
+terraform {
+  source = "../../../modules/rds"
+}
 
-  cluster_name               = "tbyte"
-  environment               = "dev"
-  vpc_id                    = module.vpc.vpc_id
-  vpc_cidr                  = module.vpc.vpc_cidr
-  private_subnet_ids        = module.vpc.private_subnet_ids
-  eks_node_security_group_id = module.eks.node_security_group_id
+dependency "vpc" {
+  config_path = "../vpc"
+}
 
-  # Database configuration
-  postgres_version = "15.8"
-  instance_class   = "db.t3.micro"
-  db_name         = "tbyte"
-  db_username     = "postgres"
+dependency "eks" {
+  config_path = "../eks"
+}
 
-  # Storage configuration
-  allocated_storage     = 20
-  max_allocated_storage = 100
-
-  # High availability (disabled for cost in test)
-  multi_az = false
-
-  # Backup configuration
-  backup_retention_period = 7
-
-  # Security (configured for easy cleanup in test)
-  deletion_protection  = false
-  skip_final_snapshot = true
+inputs = {
+  environment                   = "dev"
+  cluster_name                  = "tbyte-dev"
+  vpc_id                       = dependency.vpc.outputs.vpc_id
+  vpc_cidr                     = dependency.vpc.outputs.vpc_cidr
+  private_subnet_ids           = dependency.vpc.outputs.private_subnet_ids
+  eks_cluster_security_group_id = dependency.eks.outputs.cluster_security_group_id
+  instance_class               = "db.t3.micro"
+  allocated_storage            = 20
+  postgres_version             = "15.15"
+  multi_az                     = false
+  backup_retention_period      = 7
+  skip_final_snapshot          = true
 }
 ```
 
 ## Inputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| cluster_name | Name of the EKS cluster | `string` | n/a | yes |
-| vpc_id | VPC ID where RDS will be deployed | `string` | n/a | yes |
-| private_subnet_ids | List of private subnet IDs for RDS | `list(string)` | n/a | yes |
-| eks_node_security_group_id | Security group ID of EKS nodes | `string` | n/a | yes |
-| postgres_version | PostgreSQL version | `string` | `"15.8"` | no |
-| instance_class | RDS instance class | `string` | `"db.t3.micro"` | no |
-| multi_az | Enable Multi-AZ deployment | `bool` | `false` | no |
+| Name | Description | Type | Default |
+|------|-------------|------|---------|
+| environment | Environment name | string | - |
+| cluster_name | EKS cluster name | string | - |
+| vpc_id | VPC ID | string | - |
+| vpc_cidr | VPC CIDR block | string | - |
+| private_subnet_ids | Private subnet IDs | list(string) | - |
+| eks_cluster_security_group_id | EKS cluster security group ID | string | - |
+| instance_class | RDS instance class | string | "db.t3.micro" |
+| allocated_storage | Initial storage in GB | number | 20 |
+| postgres_version | PostgreSQL version | string | "15.15" |
+| multi_az | Enable Multi-AZ | bool | false |
+| backup_retention_period | Backup retention days | number | 7 |
+| skip_final_snapshot | Skip final snapshot | bool | true |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| db_endpoint | RDS instance endpoint |
-| db_port | RDS instance port |
+| db_instance_id | RDS instance ID |
+| db_instance_endpoint | RDS instance endpoint |
+| db_instance_port | RDS instance port |
 | db_name | Database name |
-| secrets_manager_secret_arn | ARN of the Secrets Manager secret |
-| connection_info | Database connection information for applications |
-
-## Security
-
-- Database is deployed in private subnets only
-- Security group restricts access to EKS nodes and VPC CIDR
-- Passwords stored in AWS Secrets Manager
-- Storage encryption enabled
-- Enhanced monitoring enabled
-
-## Cost Optimization
-
-For test environments:
-- Uses `db.t3.micro` (cheapest option)
-- Multi-AZ disabled (reduces cost by 50%)
-- Deletion protection disabled for easy cleanup
-- Skip final snapshot for faster deletion
-
-For production:
-- Enable Multi-AZ: `multi_az = true`
-- Use larger instance: `instance_class = "db.t3.small"`
-- Enable deletion protection: `deletion_protection = true`
-- Create final snapshot: `skip_final_snapshot = false`
-
-## Monitoring
-
-- Enhanced monitoring with 60-second granularity
-- Performance Insights enabled (7-day retention)
-- CloudWatch integration for metrics and alarms
-
-## Backup Strategy
-
-- Automated daily backups during maintenance window
-- 7-day retention period (configurable)
-- Point-in-time recovery enabled
-- Maintenance window: Sunday 04:00-05:00 UTC
-
-## Production Upgrade Path
-
-For production workloads, consider upgrading to:
-- **Aurora PostgreSQL**: Better performance, serverless options
-- **Aurora Serverless v2**: Auto-scaling compute
-- **Multi-region**: Cross-region read replicas
-- **Advanced monitoring**: Custom CloudWatch dashboards
+| db_username | Database username |

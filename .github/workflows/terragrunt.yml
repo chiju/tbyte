@@ -293,7 +293,7 @@ jobs:
     name: Deploy Staging
     runs-on: ubuntu-latest
     needs: [deploy-dev, plan-staging]
-    if: github.ref == 'refs/heads/main'
+    if: false  # Disabled for now - focus on dev environment
     environment: staging
     
     steps:
@@ -327,7 +327,7 @@ jobs:
     name: Deploy Production
     runs-on: ubuntu-latest
     needs: [deploy-staging, plan-production]
-    if: github.ref == 'refs/heads/main'
+    if: false  # Disabled for now - focus on dev environment
     environment: production
     
     steps:
