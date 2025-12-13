@@ -6,10 +6,6 @@ terraform {
   source = "../../../modules/eks"
 }
 
-dependency "bootstrap" {
-  config_path = "../../../bootstrap"
-}
-
 dependency "vpc" {
   config_path = "../vpc"
   
@@ -23,11 +19,10 @@ dependency "vpc" {
 
 inputs = {
   environment             = "dev"
-  assume_role_arn         = dependency.bootstrap.outputs.dev_account_role_arn
   cluster_name            = "tbyte-dev"
   kubernetes_version      = "1.34"
-  # Use dev account role for EKS access entry (the role that will actually access EKS)
-  github_actions_role_arn = dependency.bootstrap.outputs.dev_account_role_arn
+  # Use dev account role for EKS access entry (direct OIDC setup)
+  github_actions_role_arn = "arn:aws:iam::045129524082:role/GitHubActionsEKSRole"
   public_subnet_ids       = dependency.vpc.outputs.public_subnet_ids
   private_subnet_ids      = dependency.vpc.outputs.private_subnet_ids
   node_instance_type      = "t3.small"
