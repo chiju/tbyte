@@ -25,14 +25,6 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.0"
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 3.0"
-    }
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 3.0"
-    }
   }
 }
 
@@ -51,45 +43,6 @@ provider "aws" {
       Environment = var.environment
       Project     = "tbyte"
       ManagedBy   = "terragrunt"
-    }
-  }
-}
-
-# Kubernetes Provider - only configured when cluster variables are available
-provider "kubernetes" {
-  host                   = try(var.cluster_endpoint, "")
-  cluster_ca_certificate = try(base64decode(var.cluster_certificate_authority_data), "")
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    args = [
-      "eks",
-      "get-token",
-      "--cluster-name",
-      try(var.cluster_name, ""),
-      "--region",
-      var.aws_region
-    ]
-  }
-}
-
-# Helm Provider - only configured when cluster variables are available
-provider "helm" {
-  kubernetes = {
-    host                   = try(var.cluster_endpoint, "")
-    cluster_ca_certificate = try(base64decode(var.cluster_certificate_authority_data), "")
-    exec = {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      args = [
-        "eks",
-        "get-token",
-        "--cluster-name",
-        try(var.cluster_name, ""),
-        "--region",
-        var.aws_region
-      ]
     }
   }
 }

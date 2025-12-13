@@ -6,6 +6,13 @@ terraform {
   source = "../../../modules/argocd"
 }
 
+# Skip the generated provider since ArgoCD module has its own
+generate "provider" {
+  path      = "provider.tf"
+  if_exists = "skip"
+  contents  = ""
+}
+
 dependency "bootstrap" {
   config_path = "../../../bootstrap"
 }
