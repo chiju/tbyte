@@ -7,6 +7,7 @@ terraform {
 }
 
 inputs = {
-  cluster_name = "tbyte"
-  environment  = "shared"
+  cluster_name    = "tbyte"
+  environment     = "shared"
+  assume_role_arn = null  # Uses root account credentials
 }
