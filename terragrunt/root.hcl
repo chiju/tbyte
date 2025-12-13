@@ -48,6 +48,12 @@ provider "aws" {
   }
 }
 
+# Data source for EKS cluster authentication token
+data "aws_eks_cluster_auth" "cluster" {
+  count = try(var.cluster_name, "") != "" ? 1 : 0
+  name  = var.cluster_name
+}
+
 # Kubernetes Provider - uses exec authentication (evaluated at runtime)
 provider "kubernetes" {
   host                   = try(var.cluster_endpoint, "")
@@ -67,23 +73,12 @@ provider "kubernetes" {
   }
 }
 
-# Helm Provider - uses exec authentication (evaluated at runtime)
+# Helm Provider - uses token authentication (evaluated at runtime)
 provider "helm" {
   kubernetes = {
     host                   = try(var.cluster_endpoint, "")
     cluster_ca_certificate = try(base64decode(var.cluster_certificate_authority_data), "")
-    exec = {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      args = [
-        "eks",
-        "get-token",
-        "--cluster-name",
-        try(var.cluster_name, ""),
-        "--region",
-        var.aws_region
-      ]
-    }
+    token                  = try(data.aws_eks_cluster_auth.cluster[0].token, "")
   }
 }
 EOF
