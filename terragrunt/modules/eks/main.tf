@@ -116,7 +116,7 @@ resource "aws_eks_access_policy_association" "terraform_executor_policy" {
 # Wait for access policy to propagate
 resource "time_sleep" "wait_for_access_policy" {
   count           = var.github_actions_role_arn != "" ? 1 : 0
-  create_duration = "10s"
+  create_duration = "30s"
 
   depends_on = [aws_eks_access_policy_association.terraform_executor_policy]
 }

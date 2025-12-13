@@ -19,6 +19,9 @@ dependency "eks" {
     cluster_endpoint = "https://mock-endpoint"
     cluster_certificate_authority_data = "mock-ca-data"
   }
+  
+  # Ensure ArgoCD waits for EKS access policy to propagate
+  skip_outputs = false
 }
 
 inputs = {
@@ -36,4 +39,7 @@ inputs = {
   github_app_id              = "123456"  # Replace with actual GitHub App ID
   github_app_installation_id = "12345678"  # Replace with actual installation ID
   github_app_private_key     = "dummy-key"  # Replace with actual private key
+  
+  # Ensure access policy has propagated
+  github_actions_role_arn = dependency.bootstrap.outputs.github_actions_role_arn
 }
