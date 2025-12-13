@@ -18,3 +18,9 @@ variable "environment" {
   description = "Environment name"
   type        = string
 }
+
+variable "assume_role_arn" {
+  description = "Role ARN to assume"
+  type        = string
+  default     = null
+}
