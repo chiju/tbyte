@@ -25,6 +25,8 @@ dependency "eks" {
   mock_outputs = {
     cluster_security_group_id = "sg-mock"
   }
+  
+  skip_outputs = false
 }
 
 inputs = {
