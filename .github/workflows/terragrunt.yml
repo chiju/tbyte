@@ -52,11 +52,23 @@ jobs:
         with:
           terraform_version: 1.13.5
 
-      - name: Terraform Validate
+      - name: Setup Terragrunt
+        run: |
+          wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          chmod +x terragrunt_linux_amd64
+          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terragrunt Validate All
         working-directory: terragrunt
         run: |
-          echo "✅ Validating Terraform configurations..."
-          find . -name "*.tf" -execdir terraform init -backend=false \; -execdir terraform validate \;
+          echo "✅ Validating all Terraform configurations with Terragrunt..."
+          terragrunt run-all validate --terragrunt-non-interactive
 
   security-scan:
     name: Security Scan
