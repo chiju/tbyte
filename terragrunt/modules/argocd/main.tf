@@ -5,7 +5,7 @@ data "aws_eks_cluster" "cluster" {
 }
 
 resource "helm_release" "argocd" {
-  name             = "argocd"
+  name             = "argocd-${var.environment}"
   repository       = "oci://ghcr.io/argoproj/argo-helm"
   chart            = "argo-cd"
   namespace        = var.namespace
