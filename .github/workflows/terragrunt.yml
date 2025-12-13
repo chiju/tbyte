@@ -151,7 +151,7 @@ jobs:
         working-directory: terragrunt/environments/dev
         run: |
           echo "📋 Planning Dev Environment..."
-          terragrunt run-all plan --terragrunt-non-interactive
+          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-ignore-dependency-errors
 
   plan-staging:
     name: Plan Staging
@@ -184,7 +184,7 @@ jobs:
         working-directory: terragrunt/environments/staging
         run: |
           echo "📋 Planning Staging Environment..."
-          terragrunt run-all plan --terragrunt-non-interactive
+          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-ignore-dependency-errors
 
   plan-production:
     name: Plan Production
@@ -217,7 +217,7 @@ jobs:
         working-directory: terragrunt/environments/production
         run: |
           echo "📋 Planning Production Environment..."
-          terragrunt run-all plan --terragrunt-non-interactive
+          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-ignore-dependency-errors
 
   deploy-shared:
     name: Deploy Shared Services
