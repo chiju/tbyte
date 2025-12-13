@@ -12,6 +12,9 @@ locals {
 
   # Current account being deployed to
   current_account = local.accounts[var.target_environment]
+  
+  # Environment name
+  environment = var.target_environment
 
   # Environment-specific configurations
   env_configs = {
