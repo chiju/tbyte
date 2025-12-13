@@ -1,6 +1,6 @@
-# EKS Lab with ArgoCD - Main Configuration
-# Deployed via GitHub Actions with OIDC authentication
-# Updated: 2025-11-11 - Testing workflow updates
+# TByte Multi-Environment EKS with ArgoCD
+# Supports dev/staging/production environments using Terraform workspaces
+# Usage: terraform workspace select <env> && terraform apply
 
 # Account ID validation
 data "aws_caller_identity" "current" {}
@@ -21,10 +21,11 @@ resource "null_resource" "account_validation" {
 module "vpc" {
   source = "./modules/vpc"
 
-  cluster_name       = var.cluster_name
+  cluster_name       = local.current_env.cluster_name
   cidr               = var.cidr
   availability_zones = var.availability_zones
 
+  tags = local.common_tags
   depends_on = [null_resource.account_validation]
 }
 
@@ -32,16 +33,17 @@ module "vpc" {
 module "eks" {
   source = "./modules/eks"
 
-  cluster_name            = var.cluster_name
+  cluster_name            = local.current_env.cluster_name
   kubernetes_version      = var.kubernetes_version
   github_actions_role_arn = var.github_actions_role_arn
   public_subnet_ids       = module.vpc.public_subnet_ids
   private_subnet_ids      = module.vpc.private_subnet_ids
-  node_instance_type      = var.node_instance_type
-  desired_nodes           = var.desired_nodes
-  min_nodes               = var.min_nodes
-  max_nodes               = var.max_nodes
+  node_instance_type      = local.current_env.instance_type
+  desired_nodes           = local.current_env.desired_nodes
+  min_nodes               = local.current_env.min_nodes
+  max_nodes               = local.current_env.max_nodes
 
+  tags = local.common_tags
   depends_on = [module.vpc, null_resource.account_validation]
 }
 
@@ -49,21 +51,24 @@ module "eks" {
 module "ecr" {
   source = "./modules/ecr"
 
-  cluster_name = var.cluster_name
-  environment  = var.environment
+  cluster_name = local.current_env.cluster_name
+  environment  = local.environment
+  
+  tags = local.common_tags
 }
 
 # IAM roles and policies for EKS workloads
 module "iam" {
   source = "./modules/iam"
 
-  cluster_name            = var.cluster_name
-  environment             = var.environment
+  cluster_name            = local.current_env.cluster_name
+  environment             = local.environment
   namespace               = "default"
-  service_account_name    = "${var.cluster_name}-backend"
+  service_account_name    = "${local.current_env.cluster_name}-backend"
   rds_secret_arn          = module.rds.secret_arn
   cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
 
+  tags = local.common_tags
   depends_on = [module.eks, module.rds]
 }
 
@@ -71,8 +76,8 @@ module "iam" {
 module "rds" {
   source = "./modules/rds"
 
-  cluster_name                  = var.cluster_name
-  environment                   = "dev"
+  cluster_name                  = local.current_env.cluster_name
+  environment                   = local.environment
   vpc_id                        = module.vpc.vpc_id
   vpc_cidr                      = module.vpc.vpc_cidr
   private_subnet_ids            = module.vpc.private_subnet_ids
@@ -80,24 +85,25 @@ module "rds" {
 
   # Database configuration
   postgres_version = "15.15"
-  instance_class   = "db.t3.micro"
+  instance_class   = local.current_env.db_instance_class
   db_name          = "tbyte"
   db_username      = "postgres"
 
   # Storage configuration
-  allocated_storage     = 20
-  max_allocated_storage = 100
+  allocated_storage     = local.current_env.db_allocated_storage
+  max_allocated_storage = local.current_env.db_allocated_storage * 2
 
-  # High availability (disabled for cost in test)
-  multi_az = false
+  # High availability
+  multi_az = local.current_env.multi_az
 
   # Backup configuration
-  backup_retention_period = 7
+  backup_retention_period = local.current_env.backup_retention
 
-  # Security (configured for easy cleanup in test)
-  deletion_protection = false
-  skip_final_snapshot = true
+  # Security
+  deletion_protection = local.current_env.deletion_protection
+  skip_final_snapshot = !local.current_env.deletion_protection
 
+  tags = local.common_tags
   depends_on = [module.vpc, module.eks]
 }
 
@@ -116,6 +122,7 @@ module "argocd" {
   github_app_installation_id = var.github_app_installation_id
   github_app_private_key     = var.github_app_private_key
 
+  tags = local.common_tags
   depends_on = [module.eks, null_resource.account_validation]
 }
 

@@ -1,7 +1,7 @@
 name: 'Terraform Infrastructure'
 
 concurrency:
-  group: terraform-${{ github.repository }}
+  group: terraform-${{ github.repository }}-${{ github.event.inputs.target_environment || 'dev' }}
   cancel-in-progress: false
 
 on:
@@ -16,6 +16,16 @@ on:
       - 'terraform/**'
       - '.github/workflows/terraform.yml'
   workflow_dispatch:
+    inputs:
+      target_environment:
+        description: 'Target environment to deploy'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - staging
+        - production
 
 permissions:
   id-token: write
@@ -27,6 +37,7 @@ env:
   AWS_REGION: eu-central-1
   TF_IN_AUTOMATION: true
   TF_INPUT: false
+  TARGET_ENV: ${{ github.event.inputs.target_environment || 'dev' }}
 
 jobs:
   validate:
@@ -71,12 +82,12 @@ jobs:
         output_format: cli
 
   plan:
-    name: Plan
+    name: Plan (${{ github.event.inputs.target_environment || 'dev' }})
     runs-on: ubuntu-latest
     needs: [validate, security]
     
     concurrency:
-      group: terraform-state-${{ github.repository }}
+      group: terraform-state-${{ github.repository }}-${{ github.event.inputs.target_environment || 'dev' }}
       cancel-in-progress: false
     
     outputs:
@@ -101,19 +112,7 @@ jobs:
         terraform_version: ${{ env.TF_VERSION }}
         terraform_wrapper: false
 
-    - name: Create Terraform Cache Directory
-      run: mkdir -p ~/.terraform.d/plugin-cache
-
-    - name: Cache Terraform
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.terraform.d/plugin-cache
-        key: ${{ runner.os }}-terraform-${{ hashFiles('terraform/**/.terraform.lock.hcl') }}
-        restore-keys: |
-          ${{ runner.os }}-terraform-
-
-    - name: Configure AWS Credentials
+    - name: Configure AWS Credentials (Root Account)
       uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
@@ -127,14 +126,16 @@ jobs:
       run: |
         set +e
         terraform plan -detailed-exitcode -no-color -out=tfplan \
+          -var="target_environment=${{ env.TARGET_ENV }}" \
+          -var="dev_account_id=761380703881" \
+          -var="staging_account_id=342206309355" \
+          -var="production_account_id=155684258115" \
           -var="github_app_id=${{ secrets.ARGOCD_APP_ID }}" \
           -var="github_app_installation_id=${{ secrets.ARGOCD_APP_INSTALLATION_ID }}" \
           -var="github_app_private_key=${{ secrets.ARGOCD_APP_PRIVATE_KEY }}" \
           -var="git_repo_url=${{ secrets.GIT_REPO_URL }}" \
           -var="allowed_account_id=${{ secrets.AWS_ACCOUNT_ID }}" \
-          -var="github_actions_role_arn=${{ secrets.AWS_ROLE_ARN }}" \
-          -var="user_email_prefix=${{ secrets.USER_EMAIL_PREFIX }}" \
-          -var="user_email_domain=${{ secrets.USER_EMAIL_DOMAIN }}"
+          -var="github_actions_role_arn=${{ secrets.AWS_ROLE_ARN }}"
         exitcode=$?
         echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
         if [ $exitcode -eq 1 ]; then
@@ -149,46 +150,22 @@ jobs:
         fi
 
     - name: Save Plan Artifact
-      if: steps.plan.outputs.exitcode == 2 && github.ref == 'refs/heads/main'
+      if: steps.plan.outputs.exitcode == 2
       uses: actions/upload-artifact@v4
       with:
-        name: terraform-plan
+        name: terraform-plan-${{ env.TARGET_ENV }}
         path: terraform/tfplan
         retention-days: 5
 
-    - name: Update Pull Request
-      uses: actions/github-script@v7
-      if: github.event_name == 'pull_request'
-      with:
-        script: |
-          const output = `#### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-
-          <details><summary>Show Plan</summary>
-
-          \`\`\`terraform
-          ${{ steps.plan.outputs.stdout }}
-          \`\`\`
-
-          </details>
-
-          *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: output
-          })
-
   apply:
-    name: Apply
+    name: Apply (${{ github.event.inputs.target_environment || 'dev' }})
     runs-on: ubuntu-latest
     needs: [plan]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.plan.outputs.tfplanExitCode == '2'
-    environment: production
+    if: needs.plan.outputs.tfplanExitCode == '2'
+    environment: ${{ github.event.inputs.target_environment || 'dev' }}
     
     concurrency:
-      group: terraform-state-${{ github.repository }}
+      group: terraform-state-${{ github.repository }}-${{ github.event.inputs.target_environment || 'dev' }}
       cancel-in-progress: false
     
     defaults:
@@ -209,7 +186,7 @@ jobs:
         terraform_version: ${{ env.TF_VERSION }}
         terraform_wrapper: false
 
-    - name: Configure AWS Credentials
+    - name: Configure AWS Credentials (Root Account)
       uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
@@ -221,19 +198,18 @@ jobs:
     - name: Download Plan Artifact
       uses: actions/download-artifact@v4
       with:
-        name: terraform-plan
+        name: terraform-plan-${{ env.TARGET_ENV }}
         path: terraform
 
     - name: Terraform Apply
       run: |
-        # Retry up to 2 times with 30s delay (for EKS access policy propagation)
         SUCCESS=false
         for i in 1 2; do
           if terraform apply -auto-approve tfplan; then
             SUCCESS=true
             break
           fi
-          echo "Attempt $i failed. Waiting 30s for EKS access policy to propagate..."
+          echo "Attempt $i failed. Waiting 30s..."
           sleep 30
         done
         if [ "$SUCCESS" = false ]; then
@@ -241,10 +217,22 @@ jobs:
           exit 1
         fi
 
+    - name: Get Target Account Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.TARGET_ENV == 'dev' && secrets.DEV_ACCOUNT_ROLE_ARN || env.TARGET_ENV == 'staging' && secrets.STAGING_ACCOUNT_ROLE_ARN || secrets.PRODUCTION_ACCOUNT_ROLE_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
+
     - name: Post-deployment Tests
       run: |
+        # Get cluster name based on environment
+        CLUSTER_NAME="tbyte-${{ env.TARGET_ENV }}"
+        if [ "${{ env.TARGET_ENV }}" = "production" ]; then
+          CLUSTER_NAME="tbyte-production"
+        fi
+        
         # Get cluster credentials
-        aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name eks-gitops-lab
+        aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name $CLUSTER_NAME
         
         # Wait for nodes
         kubectl wait --for=condition=Ready nodes --all --timeout=300s || true
@@ -257,16 +245,6 @@ jobs:
     - name: Notify Success
       if: success()
       run: |
-        echo "🎉 Infrastructure deployed successfully!"
-        CLUSTER_ENDPOINT=$(aws eks describe-cluster --name eks-gitops-lab --region ${{ env.AWS_REGION }} --query 'cluster.endpoint' --output text)
-        echo "EKS Cluster Endpoint: $CLUSTER_ENDPOINT"
-
-  update-app-values:
-    name: Update App Values
-    needs: [apply]
-    if: needs.apply.result == 'success'
-    permissions:
-      id-token: write
-      contents: write
-    uses: ./.github/workflows/update-app-values.yml
-    secrets: inherit
+        echo "🎉 ${{ env.TARGET_ENV }} infrastructure deployed successfully!"
+        echo "Environment: ${{ env.TARGET_ENV }}"
+        echo "Account: ${{ env.TARGET_ENV == 'dev' && '761380703881' || env.TARGET_ENV == 'staging' && '342206309355' || '155684258115' }}"

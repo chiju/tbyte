@@ -1,3 +1,29 @@
+# Multi-Account Configuration
+variable "target_environment" {
+  description = "Target environment to deploy to"
+  type        = string
+  
+  validation {
+    condition     = contains(["dev", "staging", "production"], var.target_environment)
+    error_message = "Target environment must be one of: dev, staging, production."
+  }
+}
+
+variable "dev_account_id" {
+  description = "AWS Account ID for DEV environment"
+  type        = string
+}
+
+variable "staging_account_id" {
+  description = "AWS Account ID for STAGING environment"
+  type        = string
+}
+
+variable "production_account_id" {
+  description = "AWS Account ID for PRODUCTION environment"
+  type        = string
+}
+
 variable "github_app_id" {
   description = "GitHub App ID"
   type        = string
