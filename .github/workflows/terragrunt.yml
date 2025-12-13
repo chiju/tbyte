@@ -1,0 +1,56 @@
+name: Terragrunt Infrastructure
+
+on:
+  push:
+    branches: [main]
+    paths: ['terragrunt/**']
+  workflow_dispatch:
+
+env:
+  AWS_REGION: eu-central-1
+  TERRAGRUNT_VERSION: 0.67.16
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+
+      - name: Setup Terragrunt
+        run: |
+          wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          chmod +x terragrunt_linux_amd64
+          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy Bootstrap
+        working-directory: terragrunt
+        run: terragrunt apply --terragrunt-working-dir bootstrap --terragrunt-non-interactive
+
+      - name: Deploy Shared Services
+        working-directory: terragrunt
+        run: terragrunt apply --terragrunt-working-dir shared-services --terragrunt-non-interactive
+
+      - name: Deploy Dev Environment
+        working-directory: terragrunt
+        run: |
+          terragrunt apply --terragrunt-working-dir environments/dev/vpc --terragrunt-non-interactive
+          terragrunt apply --terragrunt-working-dir environments/dev/eks --terragrunt-non-interactive
+          terragrunt apply --terragrunt-working-dir environments/dev/rds --terragrunt-non-interactive

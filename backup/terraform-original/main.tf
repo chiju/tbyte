@@ -1,0 +1,202 @@
+# TByte Multi-Environment EKS with ArgoCD
+# Supports dev/staging/production environments using Terraform workspaces
+# Usage: terraform workspace select <env> && terraform apply
+
+# Account ID validation
+data "aws_caller_identity" "current" {}
+
+locals {
+  account_id = data.aws_caller_identity.current.account_id
+}
+
+# Prevent running against wrong account
+resource "null_resource" "account_validation" {
+  count = local.account_id != var.allowed_account_id ? 1 : 0
+
+  provisioner "local-exec" {
+    command = "echo 'ERROR: Terraform is running against account ${local.account_id} but only ${var.allowed_account_id} is allowed' && exit 1"
+  }
+}
+
+module "vpc" {
+  source = "./modules/vpc"
+
+  cluster_name       = local.current_env.cluster_name
+  cidr               = var.cidr
+  availability_zones = local.current_env.availability_zones
+
+  depends_on = [null_resource.account_validation]
+}
+
+# EKS Module
+module "eks" {
+  source = "./modules/eks"
+
+  cluster_name            = local.current_env.cluster_name
+  kubernetes_version      = var.kubernetes_version
+  github_actions_role_arn = var.github_actions_role_arn
+  public_subnet_ids       = module.vpc.public_subnet_ids
+  private_subnet_ids      = module.vpc.private_subnet_ids
+  node_instance_type      = local.current_env.instance_type
+  desired_nodes           = local.current_env.desired_nodes
+  min_nodes               = local.current_env.min_nodes
+  max_nodes               = local.current_env.max_nodes
+
+  depends_on = [module.vpc, null_resource.account_validation]
+}
+
+# ECR repositories for container images (centralized in shared services account)
+module "ecr" {
+  source = "./modules/ecr"
+  
+  providers = {
+    aws = aws.shared
+  }
+
+  cluster_name = local.current_env.cluster_name
+  environment  = local.environment
+
+}
+
+# IAM roles and policies for EKS workloads
+module "iam" {
+  source = "./modules/iam"
+
+  cluster_name            = local.current_env.cluster_name
+  environment             = local.environment
+  namespace               = "default"
+  service_account_name    = "${local.current_env.cluster_name}-backend"
+  rds_secret_arn          = module.rds.secret_arn
+  cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
+
+  depends_on = [module.eks, module.rds]
+}
+
+# RDS PostgreSQL Database
+module "rds" {
+  source = "./modules/rds"
+
+  cluster_name                  = local.current_env.cluster_name
+  environment                   = local.environment
+  vpc_id                        = module.vpc.vpc_id
+  vpc_cidr                      = module.vpc.vpc_cidr
+  private_subnet_ids            = module.vpc.private_subnet_ids
+  eks_cluster_security_group_id = module.eks.cluster_security_group_id
+
+  # Database configuration
+  postgres_version = "15.15"
+  instance_class   = local.current_env.db_instance_class
+  db_name          = "tbyte"
+  db_username      = "postgres"
+
+  # Storage configuration
+  allocated_storage     = local.current_env.db_allocated_storage
+  max_allocated_storage = local.current_env.db_allocated_storage * 2
+
+  # High availability
+  multi_az = local.current_env.multi_az
+
+  # Backup configuration
+  backup_retention_period = local.current_env.backup_retention
+
+  # Security
+  deletion_protection = local.current_env.deletion_protection
+  skip_final_snapshot = !local.current_env.deletion_protection
+
+  depends_on = [module.vpc, module.eks]
+}
+
+# ArgoCD module - Using GitHub App for authentication
+module "argocd" {
+  source = "./modules/argocd"
+
+  namespace           = "argocd"
+  argocd_version      = "9.1.0"
+  git_repo_url        = var.git_repo_url
+  git_target_revision = var.git_target_revision
+  git_apps_path       = "argocd-apps"
+
+  # GitHub App authentication
+  github_app_id              = var.github_app_id
+  github_app_installation_id = var.github_app_installation_id
+  github_app_private_key     = var.github_app_private_key
+
+  depends_on = [module.eks, null_resource.account_validation]
+}
+
+# IAM Identity Center Integration (Disabled for now)
+# module "iam_identity_center" {
+#   source = "./modules/iam-identity-center"
+# 
+#   cluster_name = var.cluster_name
+# 
+#   # Users
+#   users = {
+#     alice-dev = {
+#       email        = "chijuar@gmail.com"
+#       given_name   = "Alice"
+#       family_name  = "Developer"
+#       display_name = "Alice Developer"
+#     }
+#     bob-devops = {
+#       email        = "chijumel@gmail.com"
+#       given_name   = "Bob"
+#       family_name  = "DevOps"
+#       display_name = "Bob DevOps"
+#     }
+#     diana-viewer = {
+#       email        = "chijumelveettil@gmail.com"
+#       given_name   = "Diana"
+#       family_name  = "Viewer"
+#       display_name = "Diana Viewer"
+#     }
+#     akhila-devops = {
+#       email        = "akhilachiju@gmail.com"
+#       given_name   = "Akhila"
+#       family_name  = "Chandran"
+#       display_name = "Akhila Chandran"
+#     }
+#   }
+# 
+#   # Permission sets
+#   permission_sets = {
+#     EKSDeveloper = {
+#       description        = "EKS Developer access"
+#       managed_policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
+#     }
+#     EKSDevOps = {
+#       description        = "EKS DevOps access"
+#       managed_policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
+#     }
+#     EKSReadOnly = {
+#       description        = "EKS read-only access"
+#       managed_policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
+#     }
+#   }
+# 
+#   # User assignments
+#   user_assignments = {
+#     alice-to-developer = {
+#       user           = "alice-dev"
+#       permission_set = "EKSDeveloper"
+#     }
+#     bob-to-devops = {
+#       user           = "bob-devops"
+#       permission_set = "EKSDevOps"
+#     }
+#     diana-to-viewer = {
+#       user           = "diana-viewer"
+#       permission_set = "EKSReadOnly"
+#     }
+#     akhila-to-devops = {
+#       user           = "akhila-devops"
+#       permission_set = "EKSDevOps"
+#     }
+#   }
+# 
+#   # NOTE: Access entries will be created by ACK controller from ArgoCD
+#   # See: apps/access-entries/ for CRD definitions
+# 
+#   # No depends_on needed - Identity Center users are independent of EKS
+# }
+# Trigger workflow
