@@ -6,6 +6,10 @@ terraform {
   source = "../../../modules/argocd"
 }
 
+dependency "bootstrap" {
+  config_path = "../../../bootstrap"
+}
+
 dependency "eks" {
   config_path = "../eks"
   
@@ -23,8 +27,7 @@ dependency "eks" {
 inputs = {
   aws_region      = "eu-central-1"
   environment     = "dev"
-  # Remove assume_role_arn for single account setup
-  # assume_role_arn = dependency.bootstrap.outputs.dev_account_role_arn
+  assume_role_arn = dependency.bootstrap.outputs.dev_account_role_arn
   cluster_name    = dependency.eks.outputs.cluster_name
   cluster_endpoint = dependency.eks.outputs.cluster_endpoint
   cluster_certificate_authority_data = dependency.eks.outputs.cluster_certificate_authority_data
