@@ -7,9 +7,9 @@ data "aws_eks_cluster" "cluster" {
   name  = var.cluster_name
 }
 
-# Look up RDS secret by name if not provided
+# Look up RDS secret by name if not provided - only if RDS might exist
 data "aws_secretsmanager_secret" "rds_secret" {
-  count = var.rds_secret_arn == null ? 1 : 0
+  count = var.rds_secret_arn == null ? 0 : 0  # Disable for now, will be enabled after RDS is created
   name  = "${var.cluster_name}-rds-credentials"
 }
 
