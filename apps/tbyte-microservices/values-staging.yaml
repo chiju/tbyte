@@ -1,0 +1,83 @@
+# STAGING Environment Configuration
+global:
+  environment: staging
+  domain: staging.tbyte.local
+
+frontend:
+  enabled: true
+  image:
+    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-frontend
+    tag: "latest"  # Will be updated by pipeline
+    pullPolicy: Always
+  
+  replicaCount: 2  # Production-like but smaller
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5   # Smaller scale than prod
+    targetCPUUtilizationPercentage: 70
+
+backend:
+  enabled: true
+  image:
+    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-backend
+    tag: "latest"  # Will be updated by pipeline
+    pullPolicy: Always
+  
+  replicaCount: 2
+  
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8   # Smaller scale than prod
+    targetCPUUtilizationPercentage: 70
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+postgres:
+  enabled: true
+  replicaCount: 1
+  
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  
+  persistence:
+    enabled: true    # Persistent for staging testing
+    size: 5Gi       # Smaller than prod
+
+# Staging-specific settings
+ingress:
+  enabled: true
+  hosts:
+    - host: staging.tbyte.local
+
+networkPolicies:
+  enabled: true     # Security enabled like prod
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1

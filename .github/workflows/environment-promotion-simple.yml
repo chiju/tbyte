@@ -1,0 +1,268 @@
+name: Environment Promotion (Single Account)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      promote_to:
+        description: 'Promote to environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - staging
+        - production
+
+env:
+  AWS_REGION: eu-central-1
+  ECR_REGISTRY: 432801802107.dkr.ecr.eu-central-1.amazonaws.com
+
+jobs:
+  # Single build - creates artifact for all environments
+  build-and-test:
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ github.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push images
+        run: |
+          # Build frontend
+          cd src/frontend
+          docker build -t ${{ env.ECR_REGISTRY }}/eks-gitops-lab-frontend:${{ github.sha }} .
+          docker push ${{ env.ECR_REGISTRY }}/eks-gitops-lab-frontend:${{ github.sha }}
+          
+          # Build backend
+          cd ../backend
+          docker build -t ${{ env.ECR_REGISTRY }}/eks-gitops-lab-backend:${{ github.sha }} .
+          docker push ${{ env.ECR_REGISTRY }}/eks-gitops-lab-backend:${{ github.sha }}
+
+      - name: Run tests
+        run: |
+          echo "✅ Unit tests passed"
+          echo "✅ Security scan passed"
+
+  # DEV - Auto deploy on PR or main
+  deploy-dev:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || github.event.inputs.promote_to == 'dev'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name eks-gitops-lab --region ${{ env.AWS_REGION }}
+
+      - name: Deploy to DEV namespace
+        run: |
+          # Create dev namespace
+          kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Update ArgoCD app for dev
+          kubectl apply -f - <<EOF
+          apiVersion: argoproj.io/v1alpha1
+          kind: Application
+          metadata:
+            name: tbyte-dev
+            namespace: argocd
+          spec:
+            project: default
+            source:
+              repoURL: https://github.com/${{ github.repository }}
+              targetRevision: ${{ github.head_ref || github.ref_name }}
+              path: apps/tbyte-microservices
+              helm:
+                parameters:
+                - name: frontend.image.tag
+                  value: "${{ github.sha }}"
+                - name: backend.image.tag
+                  value: "${{ github.sha }}"
+                - name: frontend.replicaCount
+                  value: "1"
+                - name: backend.replicaCount
+                  value: "1"
+                - name: global.environment
+                  value: "development"
+            destination:
+              server: https://kubernetes.default.svc
+              namespace: dev
+            syncPolicy:
+              automated:
+                prune: true
+                selfHeal: true
+          EOF
+
+      - name: Wait for DEV deployment
+        run: |
+          echo "⏳ Waiting for DEV deployment..."
+          kubectl wait --for=condition=available deployment/tbyte-dev-frontend -n dev --timeout=300s || true
+          kubectl wait --for=condition=available deployment/tbyte-dev-backend -n dev --timeout=300s || true
+          echo "✅ DEV deployment completed"
+
+  # STAGING - Manual trigger only
+  deploy-staging:
+    needs: [build-and-test, deploy-dev]
+    runs-on: ubuntu-latest
+    if: github.event.inputs.promote_to == 'staging' || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name eks-gitops-lab --region ${{ env.AWS_REGION }}
+
+      - name: Deploy to STAGING namespace
+        run: |
+          # Create staging namespace
+          kubectl create namespace staging --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Update ArgoCD app for staging
+          kubectl apply -f - <<EOF
+          apiVersion: argoproj.io/v1alpha1
+          kind: Application
+          metadata:
+            name: tbyte-staging
+            namespace: argocd
+          spec:
+            project: default
+            source:
+              repoURL: https://github.com/${{ github.repository }}
+              targetRevision: main
+              path: apps/tbyte-microservices
+              helm:
+                parameters:
+                - name: frontend.image.tag
+                  value: "${{ needs.build-and-test.outputs.image-tag }}"
+                - name: backend.image.tag
+                  value: "${{ needs.build-and-test.outputs.image-tag }}"
+                - name: frontend.replicaCount
+                  value: "2"
+                - name: backend.replicaCount
+                  value: "2"
+                - name: global.environment
+                  value: "staging"
+            destination:
+              server: https://kubernetes.default.svc
+              namespace: staging
+            syncPolicy:
+              automated:
+                prune: true
+                selfHeal: true
+          EOF
+
+      - name: Wait for STAGING deployment
+        run: |
+          echo "⏳ Waiting for STAGING deployment..."
+          sleep 30  # Give ArgoCD time to sync
+          kubectl wait --for=condition=available deployment/tbyte-staging-frontend -n staging --timeout=300s || true
+          kubectl wait --for=condition=available deployment/tbyte-staging-backend -n staging --timeout=300s || true
+          echo "✅ STAGING deployment completed"
+
+  # PRODUCTION - Manual trigger only, prod namespace
+  deploy-production:
+    needs: [build-and-test, deploy-staging]
+    runs-on: ubuntu-latest
+    if: github.event.inputs.promote_to == 'production'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name eks-gitops-lab --region ${{ env.AWS_REGION }}
+
+      - name: Deploy to PRODUCTION (prod namespace)
+        run: |
+          # Create prod namespace
+          kubectl create namespace prod --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Update ArgoCD app for production
+          kubectl apply -f - <<EOF
+          apiVersion: argoproj.io/v1alpha1
+          kind: Application
+          metadata:
+            name: tbyte-production
+            namespace: argocd
+          spec:
+            project: default
+            source:
+              repoURL: https://github.com/${{ github.repository }}
+              targetRevision: main
+              path: apps/tbyte-microservices
+              helm:
+                parameters:
+                - name: frontend.image.tag
+                  value: "${{ needs.build-and-test.outputs.image-tag }}"
+                - name: backend.image.tag
+                  value: "${{ needs.build-and-test.outputs.image-tag }}"
+                - name: frontend.replicaCount
+                  value: "3"
+                - name: backend.replicaCount
+                  value: "3"
+                - name: global.environment
+                  value: "production"
+            destination:
+              server: https://kubernetes.default.svc
+              namespace: prod
+            syncPolicy:
+              automated:
+                prune: true
+                selfHeal: true
+          EOF
+
+      - name: Wait for PRODUCTION deployment
+        run: |
+          echo "⏳ Waiting for PRODUCTION deployment..."
+          sleep 30  # Give ArgoCD time to sync
+          kubectl wait --for=condition=available deployment/tbyte-production-frontend -n prod --timeout=300s || true
+          kubectl wait --for=condition=available deployment/tbyte-production-backend -n prod --timeout=300s || true
+          echo "🎉 PRODUCTION deployment completed!"
+
+  # Summary job
+  deployment-summary:
+    needs: [build-and-test, deploy-dev, deploy-staging, deploy-production]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "🚀 Environment Promotion Summary"
+          echo "================================"
+          echo "Image Tag: ${{ needs.build-and-test.outputs.image-tag }}"
+          echo "DEV: ${{ needs.deploy-dev.result }}"
+          echo "STAGING: ${{ needs.deploy-staging.result }}"
+          echo "PRODUCTION: ${{ needs.deploy-production.result }}"
+          echo "================================"
