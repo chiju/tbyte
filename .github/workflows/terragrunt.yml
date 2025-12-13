@@ -284,8 +284,15 @@ jobs:
           TF_VAR_github_app_installation_id: ${{ secrets.ARGOCD_APP_INSTALLATION_ID }}
           TF_VAR_github_app_private_key: ${{ secrets.ARGOCD_APP_PRIVATE_KEY }}
         run: |
-          echo "🚀 Deploying Dev Environment..."
-          terragrunt run-all apply --terragrunt-non-interactive --auto-approve
+          echo "🚀 Deploying Dev Environment (Sequential)..."
+          echo "1️⃣ Deploying EKS..."
+          cd eks && terragrunt apply --auto-approve
+          echo "2️⃣ Deploying RDS..."
+          cd ../rds && terragrunt apply --auto-approve
+          echo "3️⃣ Deploying ArgoCD..."
+          cd ../argocd && terragrunt apply --auto-approve
+          echo "4️⃣ Deploying IAM..."
+          cd ../iam && terragrunt apply --auto-approve
 
       - name: Smoke Tests
         run: |
