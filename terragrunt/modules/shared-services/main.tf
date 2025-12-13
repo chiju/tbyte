@@ -1,8 +1,8 @@
 # Shared Services: ECR repositories in root account
 
 module "ecr" {
-  source = "../../modules/ecr"
+  source = "../ecr"
 
-  cluster_name = "tbyte"
+  cluster_name = var.cluster_name
   environment  = var.environment
 }
