@@ -24,3 +24,9 @@ variable "assume_role_arn" {
   type        = string
   default     = null
 }
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "eu-central-1"
+}
