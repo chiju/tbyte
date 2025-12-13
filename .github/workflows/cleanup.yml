@@ -6,6 +6,10 @@ on:
       confirm:
         description: 'Type "destroy" to confirm'
         required: true
+      environment:
+        description: 'Environment to destroy (dev, staging, production, all)'
+        required: true
+        default: 'dev'
 
 env:
   AWS_REGION: eu-central-1
@@ -42,6 +46,12 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Destroy Dev Environment
+        if: github.event.inputs.environment == 'dev'
+        working-directory: terragrunt/environments/dev
+        run: terragrunt run-all destroy --terragrunt-non-interactive --terragrunt-ignore-external-dependencies
+
       - name: Destroy All Infrastructure
+        if: github.event.inputs.environment == 'all'
         working-directory: terragrunt
-        run: terragrunt run-all destroy --terragrunt-non-interactive
+        run: terragrunt run-all destroy --terragrunt-non-interactive --terragrunt-ignore-external-dependencies
