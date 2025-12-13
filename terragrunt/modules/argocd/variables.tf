@@ -48,3 +48,23 @@ variable "enable_ha" {
   type        = bool
   default     = false
 }
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+}
+
+variable "cluster_name" {
+  description = "EKS cluster name"
+  type        = string
+}
+
+variable "cluster_endpoint" {
+  description = "EKS cluster endpoint"
+  type        = string
+}
+
+variable "cluster_certificate_authority_data" {
+  description = "EKS cluster certificate authority data"
+  type        = string
+}
