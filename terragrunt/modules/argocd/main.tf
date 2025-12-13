@@ -3,10 +3,6 @@ data "aws_eks_cluster" "cluster" {
   name = var.cluster_name
 }
 
-data "aws_eks_cluster_auth" "cluster" {
-  name = var.cluster_name
-}
-
 resource "helm_release" "argocd" {
   name             = "argocd"
   repository       = "oci://ghcr.io/argoproj/argo-helm"
