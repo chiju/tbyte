@@ -360,15 +360,6 @@ jobs:
         run: |
           echo "🚀 Deploying Production Environment..."
           terragrunt run-all apply --terragrunt-non-interactive --auto-approve
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Deploy Production Environment
-        working-directory: terragrunt/environments/production
-        run: |
-          echo "🚀 Deploying Production Environment..."
-          terragrunt run-all apply --terragrunt-non-interactive --auto-approve
 
       - name: Post-Deployment Verification
         run: |
