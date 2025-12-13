@@ -25,8 +25,8 @@ inputs = {
   github_actions_role_arn = get_env("GITHUB_ACTIONS_ROLE_ARN", "")
   public_subnet_ids       = dependency.vpc.outputs.public_subnet_ids
   private_subnet_ids      = dependency.vpc.outputs.private_subnet_ids
-  node_instance_type      = "t3.small"
-  desired_nodes           = 1
-  min_nodes               = 1
-  max_nodes               = 3
+  node_instance_type      = "t3.medium"
+  desired_nodes           = 3
+  min_nodes               = 3
+  max_nodes               = 5
 }
