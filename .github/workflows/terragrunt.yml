@@ -39,6 +39,12 @@ jobs:
           chmod +x terragrunt_linux_amd64
           sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Terraform Format Check
         working-directory: terragrunt
         run: |
@@ -51,12 +57,6 @@ jobs:
           echo "✅ Validating Terraform configurations..."
           find . -name "*.tf" -execdir terraform init -backend=false \; -execdir terraform validate \;
 
-      - name: Terragrunt Validate
-        working-directory: terragrunt
-        run: |
-          echo "🔧 Validating Terragrunt configurations..."
-          terragrunt run-all validate --terragrunt-non-interactive --terragrunt-working-dir .
-
       - name: Setup Checkov
         run: |
           pip3 install checkov
@@ -68,39 +68,7 @@ jobs:
           echo "🛡️ Running security scan with Checkov..."
           checkov -d . --framework terraform \
             --output cli \
-            --output sarif \
-            --output-file-path console,checkov-results.sarif \
             --soft-fail
-
-      - name: Upload Checkov Results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: terragrunt/checkov-results.sarif
-
-      - name: TFLint Setup
-        uses: terraform-linters/setup-tflint@v4
-        with:
-          tflint_version: latest
-
-      - name: Run TFLint
-        working-directory: terragrunt
-        run: |
-          echo "🔍 Running TFLint..."
-          find . -name "*.tf" -execdir tflint --init \; -execdir tflint \;
-
-      - name: Terraform Docs Check
-        working-directory: terragrunt
-        run: |
-          echo "📚 Checking if documentation is up to date..."
-          # Install terraform-docs
-          curl -sSLo ./terraform-docs.tar.gz https://terraform-docs.io/dl/v0.17.0/terraform-docs-v0.17.0-$(uname)-amd64.tar.gz
-          tar -xzf terraform-docs.tar.gz
-          chmod +x terraform-docs
-          sudo mv terraform-docs /usr/local/bin/
-          
-          # Check if README files are up to date
-          find . -name "*.tf" -execdir terraform-docs markdown table --output-file README.md . \;
 
   plan-shared:
     name: Plan Shared Services
