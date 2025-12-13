@@ -3,7 +3,7 @@ name: Infrastructure Deployment
 on:
   push:
     branches: [main]
-    paths: ['terragrunt/environments/**', 'terragrunt/shared-services/**']
+    paths: ['terragrunt/**']
   workflow_dispatch:
 
 env:
@@ -47,6 +47,6 @@ jobs:
       - name: Deploy Dev Environment
         working-directory: terragrunt
         run: |
-          terragrunt apply --terragrunt-working-dir environments/dev/vpc --terragrunt-non-interactive
-          terragrunt apply --terragrunt-working-dir environments/dev/eks --terragrunt-non-interactive
-          terragrunt apply --terragrunt-working-dir environments/dev/rds --terragrunt-non-interactive
+          terragrunt apply --terragrunt-working-dir environments/dev/vpc --terragrunt-non-interactive --auto-approve
+          terragrunt apply --terragrunt-working-dir environments/dev/eks --terragrunt-non-interactive --auto-approve
+          terragrunt apply --terragrunt-working-dir environments/dev/rds --terragrunt-non-interactive --auto-approve
