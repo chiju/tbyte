@@ -22,7 +22,7 @@ inputs = {
   cluster_name            = "tbyte-dev"
   kubernetes_version      = "1.34"
   # Use dev account role for EKS access entry (direct OIDC setup)
-  github_actions_role_arn = "arn:aws:iam::045129524082:role/GitHubActionsEKSRole"
+  github_actions_role_arn = "get_env("GITHUB_ACTIONS_ROLE_ARN", "")"
   public_subnet_ids       = dependency.vpc.outputs.public_subnet_ids
   private_subnet_ids      = dependency.vpc.outputs.private_subnet_ids
   node_instance_type      = "t3.small"

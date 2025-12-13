@@ -6,9 +6,6 @@ terraform {
   source = "../../../modules/rds"
 }
 
-dependency "bootstrap" {
-  config_path = "../../../bootstrap"
-}
 
 dependency "vpc" {
   config_path = "../vpc"
@@ -33,7 +30,6 @@ dependency "eks" {
 inputs = {
   aws_region                       = "eu-central-1"
   environment                      = "production"
-  assume_role_arn                  = dependency.bootstrap.outputs.production_account_role_arn
   cluster_name                     = "tbyte-production"
   vpc_id                          = dependency.vpc.outputs.vpc_id
   vpc_cidr                        = dependency.vpc.outputs.vpc_cidr

@@ -6,9 +6,6 @@ terraform {
   source = "../../../modules/eks"
 }
 
-dependency "bootstrap" {
-  config_path = "../../../bootstrap"
-}
 
 dependency "vpc" {
   config_path = "../vpc"
@@ -23,7 +20,6 @@ dependency "vpc" {
 
 inputs = {
   environment             = "staging"
-  assume_role_arn         = dependency.bootstrap.outputs.staging_account_role_arn
   cluster_name            = "tbyte-staging"
   kubernetes_version      = "1.34"
   github_actions_role_arn = dependency.bootstrap.outputs.github_actions_role_arn

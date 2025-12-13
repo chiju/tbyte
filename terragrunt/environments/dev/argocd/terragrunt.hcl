@@ -23,8 +23,6 @@ dependency "eks" {
 inputs = {
   aws_region      = "eu-central-1"
   environment     = "dev"
-  # Remove assume_role_arn since we now have direct OIDC in dev account
-  # assume_role_arn = dependency.bootstrap.outputs.dev_account_role_arn
   cluster_name    = dependency.eks.outputs.cluster_name
   cluster_endpoint = dependency.eks.outputs.cluster_endpoint
   cluster_certificate_authority_data = dependency.eks.outputs.cluster_certificate_authority_data
