@@ -39,6 +39,7 @@ variable "private_subnet_ids" {
 variable "eks_cluster_security_group_id" {
   description = "Security group ID of EKS cluster"
   type        = string
+  default     = null
 }
 
 variable "postgres_version" {

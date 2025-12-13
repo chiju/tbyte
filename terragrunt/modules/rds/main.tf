@@ -18,13 +18,16 @@ resource "aws_security_group" "postgres" {
   name_prefix = "${var.cluster_name}-postgres-"
   vpc_id      = var.vpc_id
 
-  # Allow PostgreSQL access from EKS nodes
-  ingress {
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [var.eks_cluster_security_group_id]
-    description     = "PostgreSQL access from EKS nodes"
+  # Allow PostgreSQL access from EKS nodes (if EKS security group is provided)
+  dynamic "ingress" {
+    for_each = var.eks_cluster_security_group_id != null ? [1] : []
+    content {
+      from_port       = 5432
+      to_port         = 5432
+      protocol        = "tcp"
+      security_groups = [var.eks_cluster_security_group_id]
+      description     = "PostgreSQL access from EKS nodes"
+    }
   }
 
   # Allow access from VPC CIDR
