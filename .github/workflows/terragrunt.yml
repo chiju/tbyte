@@ -91,7 +91,6 @@ jobs:
     name: Plan Shared Services
     runs-on: ubuntu-latest
     needs: [format-check, terraform-validate, security-scan]
-    if: github.event_name == 'pull_request'
     
     steps:
       - name: Checkout
@@ -124,7 +123,6 @@ jobs:
     name: Plan Development
     runs-on: ubuntu-latest
     needs: [format-check, terraform-validate, security-scan]
-    if: github.event_name == 'pull_request'
     
     steps:
       - name: Checkout
@@ -148,16 +146,15 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Plan Dev Environment
-        working-directory: terragrunt/environments/dev
+        working-directory: terragrunt
         run: |
           echo "📋 Planning Dev Environment..."
-          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-ignore-dependency-errors
+          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-include-dir environments/dev --terragrunt-ignore-external-dependencies
 
   plan-staging:
     name: Plan Staging
     runs-on: ubuntu-latest
     needs: [format-check, terraform-validate, security-scan]
-    if: github.event_name == 'pull_request'
     
     steps:
       - name: Checkout
@@ -181,16 +178,15 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Plan Staging Environment
-        working-directory: terragrunt/environments/staging
+        working-directory: terragrunt
         run: |
           echo "📋 Planning Staging Environment..."
-          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-ignore-dependency-errors
+          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-include-dir environments/staging --terragrunt-ignore-external-dependencies
 
   plan-production:
     name: Plan Production
     runs-on: ubuntu-latest
     needs: [format-check, terraform-validate, security-scan]
-    if: github.event_name == 'pull_request'
     
     steps:
       - name: Checkout
@@ -214,15 +210,15 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Plan Production Environment
-        working-directory: terragrunt/environments/production
+        working-directory: terragrunt
         run: |
           echo "📋 Planning Production Environment..."
-          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-ignore-dependency-errors
+          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-include-dir environments/production --terragrunt-ignore-external-dependencies
 
   deploy-shared:
     name: Deploy Shared Services
     runs-on: ubuntu-latest
-    needs: [format-check, terraform-validate, security-scan]
+    needs: [format-check, terraform-validate, security-scan, plan-shared]
     if: github.ref == 'refs/heads/main'
     environment: shared-services
     
@@ -256,7 +252,7 @@ jobs:
   deploy-dev:
     name: Deploy Development
     runs-on: ubuntu-latest
-    needs: deploy-shared
+    needs: [deploy-shared, plan-dev]
     if: github.ref == 'refs/heads/main'
     environment: development
     
@@ -282,10 +278,10 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy Dev Environment
-        working-directory: terragrunt/environments/dev
+        working-directory: terragrunt
         run: |
           echo "🚀 Deploying Dev Environment..."
-          terragrunt run-all apply --terragrunt-non-interactive --auto-approve
+          terragrunt run-all apply --terragrunt-non-interactive --auto-approve --terragrunt-include-dir environments/dev
 
       - name: Smoke Tests
         run: |
@@ -296,7 +292,7 @@ jobs:
   deploy-staging:
     name: Deploy Staging
     runs-on: ubuntu-latest
-    needs: deploy-dev
+    needs: [deploy-dev, plan-staging]
     if: github.ref == 'refs/heads/main'
     environment: staging
     
@@ -322,15 +318,15 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy Staging Environment
-        working-directory: terragrunt/environments/staging
+        working-directory: terragrunt
         run: |
           echo "🚀 Deploying Staging Environment..."
-          terragrunt run-all apply --terragrunt-non-interactive --auto-approve
+          terragrunt run-all apply --terragrunt-non-interactive --auto-approve --terragrunt-include-dir environments/staging
 
   deploy-production:
     name: Deploy Production
     runs-on: ubuntu-latest
-    needs: deploy-staging
+    needs: [deploy-staging, plan-production]
     if: github.ref == 'refs/heads/main'
     environment: production
     
@@ -356,10 +352,10 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy Production Environment
-        working-directory: terragrunt/environments/production
+        working-directory: terragrunt
         run: |
           echo "🚀 Deploying Production Environment..."
-          terragrunt run-all apply --terragrunt-non-interactive --auto-approve
+          terragrunt run-all apply --terragrunt-non-interactive --auto-approve --terragrunt-include-dir environments/production
 
       - name: Post-Deployment Verification
         run: |
