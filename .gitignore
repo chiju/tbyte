@@ -10,6 +10,10 @@ eks-lab-argocd-kubeconfig.yaml
 *.tfvars
 .terraform.lock.hcl.backup
 
+# Terragrunt
+.terragrunt-cache/
+*.terragrunt-cache
+
 # IDE
 .vscode/
 .idea/
