@@ -6,10 +6,6 @@ terraform {
   source = "../../../modules/argocd"
 }
 
-dependency "bootstrap" {
-  config_path = "../../../bootstrap"
-}
-
 dependency "eks" {
   config_path = "../eks"
   
