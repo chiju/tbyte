@@ -31,6 +31,7 @@ dependency "eks" {
 }
 
 inputs = {
+  aws_region                       = "eu-central-1"
   environment                      = "dev"
   assume_role_arn                  = dependency.bootstrap.outputs.dev_account_role_arn
   cluster_name                     = "tbyte-dev"

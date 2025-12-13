@@ -31,6 +31,7 @@ dependency "eks" {
 }
 
 inputs = {
+  aws_region                       = "eu-central-1"
   environment                      = "staging"
   assume_role_arn                  = dependency.bootstrap.outputs.staging_account_role_arn
   cluster_name                     = "tbyte-staging"

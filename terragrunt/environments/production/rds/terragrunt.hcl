@@ -31,6 +31,7 @@ dependency "eks" {
 }
 
 inputs = {
+  aws_region                       = "eu-central-1"
   environment                      = "production"
   assume_role_arn                  = dependency.bootstrap.outputs.production_account_role_arn
   cluster_name                     = "tbyte-production"
