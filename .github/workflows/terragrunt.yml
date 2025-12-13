@@ -42,7 +42,7 @@ jobs:
 
       - name: Deploy Shared Services
         working-directory: terragrunt
-        run: terragrunt apply --terragrunt-working-dir shared-services --terragrunt-non-interactive
+        run: terragrunt apply --terragrunt-working-dir shared-services --terragrunt-non-interactive --auto-approve
 
       - name: Deploy Dev Environment
         working-directory: terragrunt
