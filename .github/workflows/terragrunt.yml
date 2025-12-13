@@ -91,7 +91,7 @@ jobs:
     name: Plan Shared Services
     runs-on: ubuntu-latest
     needs: [format-check, terraform-validate, security-scan]
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'pull_request'
     
     steps:
       - name: Checkout
@@ -124,7 +124,7 @@ jobs:
     name: Plan Development
     runs-on: ubuntu-latest
     needs: [format-check, terraform-validate, security-scan]
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'pull_request'
     
     steps:
       - name: Checkout
@@ -157,7 +157,7 @@ jobs:
     name: Plan Staging
     runs-on: ubuntu-latest
     needs: [format-check, terraform-validate, security-scan]
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'pull_request'
     
     steps:
       - name: Checkout
@@ -190,7 +190,7 @@ jobs:
     name: Plan Production
     runs-on: ubuntu-latest
     needs: [format-check, terraform-validate, security-scan]
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'pull_request'
     
     steps:
       - name: Checkout
@@ -222,7 +222,8 @@ jobs:
   deploy-shared:
     name: Deploy Shared Services
     runs-on: ubuntu-latest
-    needs: plan-shared
+    needs: [format-check, terraform-validate, security-scan]
+    if: github.ref == 'refs/heads/main'
     environment: shared-services
     
     steps:
