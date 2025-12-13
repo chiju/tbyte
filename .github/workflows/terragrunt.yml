@@ -102,8 +102,8 @@ jobs:
           # Check if README files are up to date
           find . -name "*.tf" -execdir terraform-docs markdown table --output-file README.md . \;
 
-  plan:
-    name: Plan Infrastructure
+  plan-shared:
+    name: Plan Shared Services
     runs-on: ubuntu-latest
     needs: validate
     if: github.event_name != 'pull_request'
@@ -135,17 +135,98 @@ jobs:
           echo "📋 Planning Shared Services..."
           terragrunt plan --terragrunt-working-dir shared-services --terragrunt-non-interactive
 
+  plan-dev:
+    name: Plan Development
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name != 'pull_request'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+
+      - name: Setup Terragrunt
+        run: |
+          wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          chmod +x terragrunt_linux_amd64
+          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Plan Dev Environment
         working-directory: terragrunt/environments/dev
         run: |
           echo "📋 Planning Dev Environment..."
           terragrunt run-all plan --terragrunt-non-interactive
 
+  plan-staging:
+    name: Plan Staging
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name != 'pull_request'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+
+      - name: Setup Terragrunt
+        run: |
+          wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          chmod +x terragrunt_linux_amd64
+          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Plan Staging Environment
         working-directory: terragrunt/environments/staging
         run: |
           echo "📋 Planning Staging Environment..."
           terragrunt run-all plan --terragrunt-non-interactive
+
+  plan-production:
+    name: Plan Production
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name != 'pull_request'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+
+      - name: Setup Terragrunt
+        run: |
+          wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          chmod +x terragrunt_linux_amd64
+          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Plan Production Environment
         working-directory: terragrunt/environments/production
@@ -156,7 +237,7 @@ jobs:
   deploy-shared:
     name: Deploy Shared Services
     runs-on: ubuntu-latest
-    needs: plan
+    needs: plan-shared
     environment: shared-services
     
     steps:
@@ -189,7 +270,7 @@ jobs:
   deploy-dev:
     name: Deploy Development
     runs-on: ubuntu-latest
-    needs: deploy-shared
+    needs: [plan-dev, deploy-shared]
     environment: development
     
     steps:
@@ -228,7 +309,7 @@ jobs:
   deploy-staging:
     name: Deploy Staging
     runs-on: ubuntu-latest
-    needs: deploy-dev
+    needs: [plan-staging, deploy-dev]
     environment: staging
     
     steps:
@@ -261,7 +342,7 @@ jobs:
   deploy-production:
     name: Deploy Production
     runs-on: ubuntu-latest
-    needs: deploy-staging
+    needs: [plan-production, deploy-staging]
     environment: production
     
     steps:
