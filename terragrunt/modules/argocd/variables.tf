@@ -1,3 +1,14 @@
+variable "assume_role_arn" {
+  description = "IAM role ARN to assume for cross-account access"
+  type        = string
+  default     = null
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
+}
+
 variable "namespace" {
   description = "Kubernetes namespace for ArgoCD"
   type        = string
