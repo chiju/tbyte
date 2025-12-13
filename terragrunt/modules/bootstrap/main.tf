@@ -1,4 +1,4 @@
-# Bootstrap Module: Creates AWS accounts and cross-account roles
+# Bootstrap Module: Creates AWS accounts and GitHub OIDC
 
 # Create AWS accounts
 resource "aws_organizations_account" "dev" {
@@ -65,77 +65,7 @@ resource "aws_iam_role_policy_attachment" "github_actions_admin" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
-# Cross-account execution roles
-resource "aws_iam_role" "terraform_execution_dev" {
-  provider = aws.dev
-  name     = "TerraformExecutionRole"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "terraform_execution_dev" {
-  provider   = aws.dev
-  role       = aws_iam_role.terraform_execution_dev.name
-  policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
-}
-
-resource "aws_iam_role" "terraform_execution_staging" {
-  provider = aws.staging
-  name     = "TerraformExecutionRole"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "terraform_execution_staging" {
-  provider   = aws.staging
-  role       = aws_iam_role.terraform_execution_staging.name
-  policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
-}
-
-resource "aws_iam_role" "terraform_execution_production" {
-  provider = aws.production
-  name     = "TerraformExecutionRole"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "terraform_execution_production" {
-  provider   = aws.production
-  role       = aws_iam_role.terraform_execution_production.name
-  policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
-}
-
 data "aws_caller_identity" "current" {}
+
+# Note: Cross-account roles will be created manually or via separate process
+# after accounts are created, since we can't assume roles that don't exist yet
