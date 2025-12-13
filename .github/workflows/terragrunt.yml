@@ -146,10 +146,10 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Plan Dev Environment
-        working-directory: terragrunt
+        working-directory: terragrunt/environments/dev
         run: |
           echo "📋 Planning Dev Environment..."
-          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-include-dir environments/dev --terragrunt-ignore-external-dependencies
+          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-ignore-external-dependencies
 
   plan-staging:
     name: Plan Staging
@@ -178,10 +178,10 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Plan Staging Environment
-        working-directory: terragrunt
+        working-directory: terragrunt/environments/staging
         run: |
           echo "📋 Planning Staging Environment..."
-          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-include-dir environments/staging --terragrunt-ignore-external-dependencies
+          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-ignore-external-dependencies
 
   plan-production:
     name: Plan Production
@@ -210,10 +210,10 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Plan Production Environment
-        working-directory: terragrunt
+        working-directory: terragrunt/environments/production
         run: |
           echo "📋 Planning Production Environment..."
-          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-include-dir environments/production --terragrunt-ignore-external-dependencies
+          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-ignore-external-dependencies
 
   deploy-shared:
     name: Deploy Shared Services
@@ -278,10 +278,10 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy Dev Environment
-        working-directory: terragrunt
+        working-directory: terragrunt/environments/dev
         run: |
           echo "🚀 Deploying Dev Environment..."
-          terragrunt run-all apply --terragrunt-non-interactive --auto-approve --terragrunt-include-dir environments/dev
+          terragrunt run-all apply --terragrunt-non-interactive --auto-approve
 
       - name: Smoke Tests
         run: |
@@ -318,10 +318,10 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy Staging Environment
-        working-directory: terragrunt
+        working-directory: terragrunt/environments/staging
         run: |
           echo "🚀 Deploying Staging Environment..."
-          terragrunt run-all apply --terragrunt-non-interactive --auto-approve --terragrunt-include-dir environments/staging
+          terragrunt run-all apply --terragrunt-non-interactive --auto-approve
 
   deploy-production:
     name: Deploy Production
@@ -352,10 +352,10 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy Production Environment
-        working-directory: terragrunt
+        working-directory: terragrunt/environments/production
         run: |
           echo "🚀 Deploying Production Environment..."
-          terragrunt run-all apply --terragrunt-non-interactive --auto-approve --terragrunt-include-dir environments/production
+          terragrunt run-all apply --terragrunt-non-interactive --auto-approve
 
       - name: Post-Deployment Verification
         run: |
