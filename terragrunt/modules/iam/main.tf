@@ -16,12 +16,9 @@ data "aws_secretsmanager_secret" "rds_secret" {
 data "aws_caller_identity" "current" {}
 
 locals {
-  oidc_issuer_url = var.cluster_oidc_issuer_url == null || can(regex("MOCK", var.cluster_oidc_issuer_url)) ? 
-    (length(data.aws_eks_cluster.cluster) > 0 ? replace(data.aws_eks_cluster.cluster[0].identity[0].oidc[0].issuer, "https://", "") : "mock-oidc-issuer") :
-    replace(var.cluster_oidc_issuer_url, "https://", "")
+  oidc_issuer_url = var.cluster_oidc_issuer_url == null || can(regex("MOCK", var.cluster_oidc_issuer_url)) ? (length(data.aws_eks_cluster.cluster) > 0 ? replace(data.aws_eks_cluster.cluster[0].identity[0].oidc[0].issuer, "https://", "") : "mock-oidc-issuer") : replace(var.cluster_oidc_issuer_url, "https://", "")
   
-  rds_secret_arn = var.rds_secret_arn != null ? var.rds_secret_arn : 
-    (length(data.aws_secretsmanager_secret.rds_secret) > 0 ? data.aws_secretsmanager_secret.rds_secret[0].arn : "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:mock-secret")
+  rds_secret_arn = var.rds_secret_arn != null ? var.rds_secret_arn : (length(data.aws_secretsmanager_secret.rds_secret) > 0 ? data.aws_secretsmanager_secret.rds_secret[0].arn : "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:mock-secret")
 }
 
 # IRSA Role for Backend Service
