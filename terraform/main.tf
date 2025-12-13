@@ -25,7 +25,7 @@ module "vpc" {
   cidr               = var.cidr
   availability_zones = var.availability_zones
 
-  tags = local.common_tags
+  tags       = local.common_tags
   depends_on = [null_resource.account_validation]
 }
 
@@ -43,7 +43,7 @@ module "eks" {
   min_nodes               = local.current_env.min_nodes
   max_nodes               = local.current_env.max_nodes
 
-  tags = local.common_tags
+  tags       = local.common_tags
   depends_on = [module.vpc, null_resource.account_validation]
 }
 
@@ -53,7 +53,7 @@ module "ecr" {
 
   cluster_name = local.current_env.cluster_name
   environment  = local.environment
-  
+
   tags = local.common_tags
 }
 
@@ -68,7 +68,7 @@ module "iam" {
   rds_secret_arn          = module.rds.secret_arn
   cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
 
-  tags = local.common_tags
+  tags       = local.common_tags
   depends_on = [module.eks, module.rds]
 }
 
@@ -103,7 +103,7 @@ module "rds" {
   deletion_protection = local.current_env.deletion_protection
   skip_final_snapshot = !local.current_env.deletion_protection
 
-  tags = local.common_tags
+  tags       = local.common_tags
   depends_on = [module.vpc, module.eks]
 }
 
@@ -122,7 +122,7 @@ module "argocd" {
   github_app_installation_id = var.github_app_installation_id
   github_app_private_key     = var.github_app_private_key
 
-  tags = local.common_tags
+  tags       = local.common_tags
   depends_on = [module.eks, null_resource.account_validation]
 }
 

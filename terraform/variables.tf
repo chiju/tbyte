@@ -2,7 +2,7 @@
 variable "target_environment" {
   description = "Target environment to deploy to"
   type        = string
-  
+
   validation {
     condition     = contains(["dev", "staging", "production"], var.target_environment)
     error_message = "Target environment must be one of: dev, staging, production."
