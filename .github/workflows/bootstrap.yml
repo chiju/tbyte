@@ -45,4 +45,4 @@ jobs:
       - name: Bootstrap Infrastructure
         working-directory: terragrunt
         run: |
-          terragrunt apply --terragrunt-working-dir bootstrap --terragrunt-non-interactive
+          terragrunt apply --terragrunt-working-dir bootstrap --terragrunt-non-interactive --auto-approve
