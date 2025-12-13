@@ -49,6 +49,7 @@ terraform {
 }
 
 inputs = {
+  aws_region      = "eu-central-1"
   environment     = "bootstrap"
   github_repo     = "chiju/tbyte"
   email_domain    = "example.com"
