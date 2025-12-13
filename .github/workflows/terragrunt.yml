@@ -219,7 +219,7 @@ jobs:
     name: Deploy Shared Services
     runs-on: ubuntu-latest
     needs: [plan-shared]
-    if: github.ref == 'refs/heads/main'
+    if: false  # Disabled - using dev account setup instead
     environment: shared-services
     
     steps:
