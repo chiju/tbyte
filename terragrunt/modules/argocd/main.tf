@@ -1,6 +1,6 @@
 # Wait for EKS cluster to be ready before deploying ArgoCD
 data "aws_eks_cluster" "cluster" {
-  count = var.cluster_name != "mock-cluster" ? 1 : 0
+  count = var.cluster_endpoint != "https://mock-endpoint" ? 1 : 0
   name  = var.cluster_name
 }
 
