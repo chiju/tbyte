@@ -149,13 +149,15 @@ jobs:
         working-directory: terragrunt/environments/dev
         run: |
           echo "📋 Planning Dev Environment (Sequential)..."
-          echo "1️⃣ Planning EKS..."
-          cd eks && terragrunt plan
-          echo "2️⃣ Planning RDS..."
+          echo "1️⃣ Planning VPC..."
+          cd vpc && terragrunt plan
+          echo "2️⃣ Planning EKS..."
+          cd ../eks && terragrunt plan
+          echo "3️⃣ Planning RDS..."
           cd ../rds && terragrunt plan
-          echo "3️⃣ Planning ArgoCD..."
+          echo "4️⃣ Planning ArgoCD..."
           cd ../argocd && terragrunt plan
-          echo "4️⃣ Planning IAM..."
+          echo "5️⃣ Planning IAM..."
           cd ../iam && terragrunt plan
 
   plan-staging:
@@ -292,13 +294,15 @@ jobs:
           TF_VAR_github_app_private_key: ${{ secrets.ARGOCD_APP_PRIVATE_KEY }}
         run: |
           echo "🚀 Deploying Dev Environment (Sequential)..."
-          echo "1️⃣ Deploying EKS..."
-          cd eks && terragrunt apply --auto-approve
-          echo "2️⃣ Deploying RDS..."
+          echo "1️⃣ Deploying VPC..."
+          cd vpc && terragrunt apply --auto-approve
+          echo "2️⃣ Deploying EKS..."
+          cd ../eks && terragrunt apply --auto-approve
+          echo "3️⃣ Deploying RDS..."
           cd ../rds && terragrunt apply --auto-approve
-          echo "3️⃣ Deploying ArgoCD..."
+          echo "4️⃣ Deploying ArgoCD..."
           cd ../argocd && terragrunt apply --auto-approve
-          echo "4️⃣ Deploying IAM..."
+          echo "5️⃣ Deploying IAM..."
           cd ../iam && terragrunt apply --auto-approve
 
       - name: Smoke Tests
