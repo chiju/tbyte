@@ -23,7 +23,7 @@ module "vpc" {
 
   cluster_name       = local.current_env.cluster_name
   cidr               = var.cidr
-  availability_zones = var.availability_zones
+  availability_zones = local.current_env.availability_zones
 
   depends_on = [null_resource.account_validation]
 }
