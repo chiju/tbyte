@@ -10,5 +10,5 @@ output "backend_service_role_name" {
 
 output "eso_role_arn" {
   description = "ARN of the IAM role for External Secrets Operator"
-  value       = aws_iam_role.eso_role.arn
+  value       = length(aws_iam_role.eso_role) > 0 ? aws_iam_role.eso_role[0].arn : null
 }
