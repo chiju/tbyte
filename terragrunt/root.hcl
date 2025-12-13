@@ -55,30 +55,42 @@ provider "aws" {
   }
 }
 
-# Data source to get EKS cluster info (only when cluster exists)
-data "aws_eks_cluster" "cluster" {
-  count = var.cluster_name != null && var.cluster_name != "" ? 1 : 0
-  name  = var.cluster_name
-}
-
-data "aws_eks_cluster_auth" "cluster" {
-  count = var.cluster_name != null && var.cluster_name != "" ? 1 : 0
-  name  = var.cluster_name
-}
-
-# Kubernetes Provider - only configured when cluster exists
+# Kubernetes Provider - uses exec authentication (evaluated at runtime)
 provider "kubernetes" {
-  host                   = var.cluster_name != null && var.cluster_name != "" ? data.aws_eks_cluster.cluster[0].endpoint : ""
-  cluster_ca_certificate = var.cluster_name != null && var.cluster_name != "" ? base64decode(data.aws_eks_cluster.cluster[0].certificate_authority[0].data) : ""
-  token                  = var.cluster_name != null && var.cluster_name != "" ? data.aws_eks_cluster_auth.cluster[0].token : ""
+  host                   = try(var.cluster_endpoint, "")
+  cluster_ca_certificate = try(base64decode(var.cluster_certificate_authority_data), "")
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args = [
+      "eks",
+      "get-token",
+      "--cluster-name",
+      try(var.cluster_name, ""),
+      "--region",
+      var.aws_region
+    ]
+  }
 }
 
-# Helm Provider - only configured when cluster exists  
+# Helm Provider - uses exec authentication (evaluated at runtime)
 provider "helm" {
   kubernetes = {
-    host                   = var.cluster_name != null && var.cluster_name != "" ? data.aws_eks_cluster.cluster[0].endpoint : ""
-    cluster_ca_certificate = var.cluster_name != null && var.cluster_name != "" ? base64decode(data.aws_eks_cluster.cluster[0].certificate_authority[0].data) : ""
-    token                  = var.cluster_name != null && var.cluster_name != "" ? data.aws_eks_cluster_auth.cluster[0].token : ""
+    host                   = try(var.cluster_endpoint, "")
+    cluster_ca_certificate = try(base64decode(var.cluster_certificate_authority_data), "")
+    exec = {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        try(var.cluster_name, ""),
+        "--region",
+        var.aws_region
+      ]
+    }
   }
 }
 EOF
