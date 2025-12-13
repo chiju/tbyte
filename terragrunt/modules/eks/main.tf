@@ -98,8 +98,27 @@ resource "aws_eks_access_entry" "admin_user" {
   type          = "STANDARD"
 }
 
-# Note: GitHub Actions access entry already exists manually
-# Removed automatic creation to avoid ResourceInUseException
+# Access entry for GitHub Actions role (cluster creator)
+resource "aws_eks_access_entry" "github_actions" {
+  count         = local.executor_role_arn != "" ? 1 : 0
+  cluster_name  = aws_eks_cluster.eks_cluster_lrn.name
+  principal_arn = local.executor_role_arn
+  type          = "STANDARD"
+}
+
+# Associate admin policy with GitHub Actions role
+resource "aws_eks_access_policy_association" "github_actions_admin" {
+  count         = local.executor_role_arn != "" ? 1 : 0
+  cluster_name  = aws_eks_cluster.eks_cluster_lrn.name
+  principal_arn = local.executor_role_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [aws_eks_access_entry.github_actions]
+}
 
 # Admin policy for admin user
 resource "aws_eks_access_policy_association" "admin_policy" {
