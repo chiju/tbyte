@@ -38,11 +38,6 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  
-  dynamic "assume_role" {
-    content {
-    }
-  }
 
   default_tags {
     tags = {
