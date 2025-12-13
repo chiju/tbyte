@@ -148,8 +148,15 @@ jobs:
       - name: Plan Dev Environment
         working-directory: terragrunt/environments/dev
         run: |
-          echo "📋 Planning Dev Environment..."
-          terragrunt run-all plan --terragrunt-non-interactive --terragrunt-ignore-external-dependencies
+          echo "📋 Planning Dev Environment (Sequential)..."
+          echo "1️⃣ Planning EKS..."
+          cd eks && terragrunt plan
+          echo "2️⃣ Planning RDS..."
+          cd ../rds && terragrunt plan
+          echo "3️⃣ Planning ArgoCD..."
+          cd ../argocd && terragrunt plan
+          echo "4️⃣ Planning IAM..."
+          cd ../iam && terragrunt plan
 
   plan-staging:
     name: Plan Staging
