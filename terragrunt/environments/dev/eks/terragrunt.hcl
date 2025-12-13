@@ -12,6 +12,14 @@ dependency "bootstrap" {
 
 dependency "vpc" {
   config_path = "../vpc"
+  skip_outputs = true
+  
+  mock_outputs_allowed_terraform_commands = ["plan", "validate"]
+  mock_outputs = {
+    vpc_id             = "vpc-mock"
+    private_subnet_ids = ["subnet-mock-1", "subnet-mock-2"]
+    public_subnet_ids  = ["subnet-mock-3", "subnet-mock-4"]
+  }
 }
 
 inputs = {

@@ -12,6 +12,7 @@ dependency "bootstrap" {
 
 dependency "vpc" {
   config_path = "../vpc"
+  skip_outputs = true
   
   mock_outputs_allowed_terraform_commands = ["plan", "validate"]
   mock_outputs = {
@@ -23,6 +24,7 @@ dependency "vpc" {
 
 dependency "eks" {
   config_path = "../eks"
+  skip_outputs = true
   
   mock_outputs_allowed_terraform_commands = ["plan", "validate"]
   mock_outputs = {
