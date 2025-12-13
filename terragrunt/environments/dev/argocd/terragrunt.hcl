@@ -6,10 +6,6 @@ terraform {
   source = "../../../modules/argocd"
 }
 
-dependency "bootstrap" {
-  config_path = "../../../bootstrap"
-}
-
 dependency "eks" {
   config_path = "../eks"
   
@@ -27,7 +23,8 @@ dependency "eks" {
 inputs = {
   aws_region      = "eu-central-1"
   environment     = "dev"
-  assume_role_arn = dependency.bootstrap.outputs.dev_account_role_arn
+  # Remove assume_role_arn for single account setup
+  # assume_role_arn = dependency.bootstrap.outputs.dev_account_role_arn
   cluster_name    = dependency.eks.outputs.cluster_name
   cluster_endpoint = dependency.eks.outputs.cluster_endpoint
   cluster_certificate_authority_data = dependency.eks.outputs.cluster_certificate_authority_data
@@ -39,7 +36,4 @@ inputs = {
   github_app_id              = "123456"  # Replace with actual GitHub App ID
   github_app_installation_id = "12345678"  # Replace with actual installation ID
   github_app_private_key     = "dummy-key"  # Replace with actual private key
-  
-  # Ensure access policy has propagated
-  github_actions_role_arn = dependency.bootstrap.outputs.github_actions_role_arn
 }
