@@ -6,31 +6,15 @@ terraform {
   source = "../../../modules/iam"
 }
 
-
-dependency "eks" {
-  config_path = "../eks"
-  
-  mock_outputs_allowed_terraform_commands = ["plan", "validate"]
-  mock_outputs = {
-    cluster_name            = "tbyte-dev"
-    cluster_oidc_issuer_url = "https://oidc.eks.eu-central-1.amazonaws.com/id/MOCK123456"
-  }
-}
-
-dependency "rds" {
-  config_path = "../rds"
-  
-  mock_outputs_allowed_terraform_commands = ["plan", "validate"]
-  mock_outputs = {
-    secret_arn = "arn:aws:secretsmanager:eu-central-1:123456789012:secret:mock-secret"
-  }
+dependencies {
+  paths = ["../eks", "../rds"]
 }
 
 inputs = {
   aws_region              = "eu-central-1"
   environment             = "dev"
-  cluster_name            = dependency.eks.outputs.cluster_name
+  cluster_name            = "tbyte-dev"
   service_account_name    = "tbyte-app"
-  rds_secret_arn          = dependency.rds.outputs.secret_arn
-  cluster_oidc_issuer_url = dependency.eks.outputs.cluster_oidc_issuer_url
+  # IAM will get OIDC issuer URL from EKS data source after cluster is created
+  # RDS secret ARN will be looked up by name after RDS is created
 }

@@ -35,9 +35,11 @@ variable "service_account_name" {
 variable "rds_secret_arn" {
   description = "ARN of the RDS secret in AWS Secrets Manager"
   type        = string
+  default     = null
 }
 
 variable "cluster_oidc_issuer_url" {
   description = "OIDC issuer URL of the EKS cluster"
   type        = string
+  default     = null
 }
