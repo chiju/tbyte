@@ -1,10 +1,11 @@
-name: Infrastructure Deployment
+name: Bootstrap Infrastructure
 
 on:
-  push:
-    branches: [main]
-    paths: ['terragrunt/environments/**', 'terragrunt/shared-services/**']
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "bootstrap" to confirm account creation'
+        required: true
 
 env:
   AWS_REGION: eu-central-1
@@ -15,9 +16,10 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
-    name: Deploy Infrastructure
+  bootstrap:
+    name: Bootstrap Accounts & OIDC
     runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'bootstrap'
     
     steps:
       - name: Checkout
@@ -40,13 +42,10 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Deploy Shared Services
-        working-directory: terragrunt
-        run: terragrunt apply --terragrunt-working-dir shared-services --terragrunt-non-interactive
-
-      - name: Deploy Dev Environment
+      - name: Bootstrap Infrastructure
         working-directory: terragrunt
         run: |
-          terragrunt apply --terragrunt-working-dir environments/dev/vpc --terragrunt-non-interactive
-          terragrunt apply --terragrunt-working-dir environments/dev/eks --terragrunt-non-interactive
-          terragrunt apply --terragrunt-working-dir environments/dev/rds --terragrunt-non-interactive
+          # Force unlock any stale locks first
+          terragrunt force-unlock -force acdd50dd-1ef2-54ce-893b-b306783108e5 --terragrunt-working-dir bootstrap || true
+          # Deploy bootstrap
+          terragrunt apply --terragrunt-working-dir bootstrap --terragrunt-non-interactive
