@@ -91,32 +91,12 @@ locals {
   executor_role_arn = try(regex("^(arn:aws:iam::[0-9]+:role/[^/]+)", local.executor_arn)[0], "")
 }
 
-# Access entry for your IAM user with built-in admin policy
-resource "aws_eks_access_entry" "admin_user" {
-  cluster_name  = aws_eks_cluster.eks_cluster_lrn.name
-  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/infra_user"
-  type          = "STANDARD"
-}
-
 # Access entry for the role running Terraform (GitHub Actions)
 resource "aws_eks_access_entry" "terraform_executor" {
   count         = var.github_actions_role_arn != "" ? 1 : 0
   cluster_name  = aws_eks_cluster.eks_cluster_lrn.name
   principal_arn = var.github_actions_role_arn
   type          = "STANDARD"
-}
-
-# Use AWS managed policy instead of custom ClusterRoleBinding
-resource "aws_eks_access_policy_association" "admin_policy" {
-  cluster_name  = aws_eks_cluster.eks_cluster_lrn.name
-  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/infra_user"
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-
-  access_scope {
-    type = "cluster"
-  }
-
-  depends_on = [aws_eks_access_entry.admin_user]
 }
 
 # Admin policy for Terraform executor
