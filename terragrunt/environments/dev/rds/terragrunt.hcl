@@ -31,18 +31,18 @@ dependency "eks" {
 }
 
 inputs = {
-  environment               = "dev"
-  assume_role_arn           = dependency.bootstrap.outputs.dev_account_role_arn
-  cluster_name              = "tbyte-dev"
-  vpc_id                    = dependency.vpc.outputs.vpc_id
-  private_subnet_ids        = dependency.vpc.outputs.private_subnet_ids
-  eks_cluster_sg_id         = dependency.eks.outputs.cluster_security_group_id
-  instance_class            = "db.t3.micro"
-  allocated_storage         = 20
-  max_allocated_storage     = 40
-  engine_version            = "15.8"
-  multi_az                  = false
-  backup_window             = "03:00-04:00"
-  backup_retention_period   = 1
-  skip_final_snapshot       = true
+  environment                      = "dev"
+  assume_role_arn                  = dependency.bootstrap.outputs.dev_account_role_arn
+  cluster_name                     = "tbyte-dev"
+  vpc_id                          = dependency.vpc.outputs.vpc_id
+  vpc_cidr                        = dependency.vpc.outputs.vpc_cidr
+  private_subnet_ids              = dependency.vpc.outputs.private_subnet_ids
+  eks_cluster_security_group_id   = dependency.eks.outputs.cluster_security_group_id
+  instance_class                  = "db.t3.micro"
+  allocated_storage               = 20
+  max_allocated_storage           = 40
+  postgres_version                = "15.8"
+  multi_az                        = false
+  backup_retention_period         = 1
+  skip_final_snapshot             = true
 }
