@@ -6,26 +6,15 @@ terraform {
   source = "../../../modules/argocd"
 }
 
-dependency "eks" {
-  config_path = "../eks"
-  
-  mock_outputs_allowed_terraform_commands = ["plan", "validate"]
-  mock_outputs = {
-    cluster_name     = "tbyte-dev"
-    cluster_endpoint = "https://mock-endpoint"
-    cluster_certificate_authority_data = "mock-ca-data"
-  }
-  
-  # Ensure ArgoCD waits for EKS access policy to propagate
-  skip_outputs = false
+dependencies {
+  paths = ["../eks"]
 }
 
 inputs = {
   aws_region      = "eu-central-1"
   environment     = "dev"
-  cluster_name    = dependency.eks.outputs.cluster_name
-  cluster_endpoint = dependency.eks.outputs.cluster_endpoint
-  cluster_certificate_authority_data = dependency.eks.outputs.cluster_certificate_authority_data
+  cluster_name    = "tbyte-dev"
+  # ArgoCD will get cluster info from kubeconfig after EKS is created
   
   # ArgoCD configuration - use GitHub secrets
   git_repo_url                = "https://github.com/chiju/tbyte.git"
