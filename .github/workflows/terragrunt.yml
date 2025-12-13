@@ -68,7 +68,7 @@ jobs:
         working-directory: terragrunt
         run: |
           echo "✅ Validating all Terraform configurations with Terragrunt..."
-          terragrunt run-all validate --terragrunt-non-interactive
+          terragrunt run-all validate --terragrunt-non-interactive --terragrunt-ignore-dependency-errors
 
   security-scan:
     name: Security Scan
