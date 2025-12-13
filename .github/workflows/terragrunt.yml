@@ -296,7 +296,7 @@ jobs:
   deploy-staging:
     name: Deploy Staging
     runs-on: ubuntu-latest
-    needs: [deploy-dev, plan-staging]
+    needs: [plan-staging]
     if: false  # Disabled for now - focus on dev environment
     environment: staging
     
@@ -330,7 +330,7 @@ jobs:
   deploy-production:
     name: Deploy Production
     runs-on: ubuntu-latest
-    needs: [deploy-staging, plan-production]
+    needs: [plan-production]
     if: false  # Disabled for now - focus on dev environment
     environment: production
     
