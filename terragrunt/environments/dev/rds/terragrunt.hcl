@@ -18,15 +18,8 @@ dependency "vpc" {
   }
 }
 
-dependency "eks" {
-  config_path = "../eks"
-  
-  mock_outputs_allowed_terraform_commands = ["plan", "validate"]
-  mock_outputs = {
-    cluster_security_group_id = "sg-mock"
-  }
-  
-  skip_outputs = false
+dependencies {
+  paths = ["../eks"]
 }
 
 inputs = {
@@ -36,7 +29,6 @@ inputs = {
   vpc_id                          = dependency.vpc.outputs.vpc_id
   vpc_cidr                        = dependency.vpc.outputs.vpc_cidr
   private_subnet_ids              = dependency.vpc.outputs.private_subnet_ids
-  eks_cluster_security_group_id   = dependency.eks.outputs.cluster_security_group_id
   instance_class                  = "db.t3.micro"
   allocated_storage               = 20
   max_allocated_storage           = 40
