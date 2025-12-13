@@ -44,20 +44,20 @@ jobs:
 
       - name: Destroy ArgoCD
         working-directory: terragrunt/environments/dev/argocd
-        run: terragrunt destroy --terragrunt-non-interactive || true
+        run: terragrunt destroy --terragrunt-non-interactive --auto-approve || true
 
       - name: Destroy IAM
         working-directory: terragrunt/environments/dev/iam
-        run: terragrunt destroy --terragrunt-non-interactive || true
+        run: terragrunt destroy --terragrunt-non-interactive --auto-approve || true
 
       - name: Destroy RDS
         working-directory: terragrunt/environments/dev/rds
-        run: terragrunt destroy --terragrunt-non-interactive || true
+        run: terragrunt destroy --terragrunt-non-interactive --auto-approve || true
 
       - name: Destroy EKS
         working-directory: terragrunt/environments/dev/eks
-        run: terragrunt destroy --terragrunt-non-interactive || true
+        run: terragrunt destroy --terragrunt-non-interactive --auto-approve || true
 
       - name: Destroy VPC
         working-directory: terragrunt/environments/dev/vpc
-        run: terragrunt destroy --terragrunt-non-interactive || true
+        run: terragrunt destroy --terragrunt-non-interactive --auto-approve || true
