@@ -1,6 +1,7 @@
 # Wait for EKS cluster to be ready before deploying ArgoCD
 data "aws_eks_cluster" "cluster" {
-  name = var.cluster_name
+  count = var.cluster_name != "mock-cluster" ? 1 : 0
+  name  = var.cluster_name
 }
 
 resource "helm_release" "argocd" {
