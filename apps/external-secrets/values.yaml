@@ -3,7 +3,7 @@ external-secrets:
   # Service account with IRSA for AWS Secrets Manager access
   serviceAccount:
     annotations:
-      eks.amazonaws.com/role-arn: ""
+      eks.amazonaws.com/role-arn: "arn:aws:iam::045129524082:role/tbyte-dev-eso-role"
   
   # Install CRDs
   installCRDs: true
