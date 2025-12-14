@@ -90,19 +90,21 @@ jobs:
           TAG=${GITHUB_SHA::8}
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Build & Push Frontend
+      - name: Build Frontend Image
         uses: docker/build-push-action@v5
         with:
           context: src/frontend
-          push: true
+          push: false
           tags: ${{ env.ECR_REGISTRY }}/tbyte-dev-frontend:${{ steps.meta.outputs.tag }}
+          load: true
 
-      - name: Build & Push Backend
+      - name: Build Backend Image
         uses: docker/build-push-action@v5
         with:
           context: src/backend
-          push: true
+          push: false
           tags: ${{ env.ECR_REGISTRY }}/tbyte-dev-backend:${{ steps.meta.outputs.tag }}
+          load: true
 
       - name: Security Scan
         run: |
@@ -115,6 +117,11 @@ jobs:
           # Scan (fail only on CRITICAL)
           trivy image --exit-code 1 --severity CRITICAL ${{ env.ECR_REGISTRY }}/tbyte-dev-frontend:${{ steps.meta.outputs.tag }}
           trivy image --exit-code 1 --severity CRITICAL ${{ env.ECR_REGISTRY }}/tbyte-dev-backend:${{ steps.meta.outputs.tag }}
+
+      - name: Push Secure Images
+        run: |
+          docker push ${{ env.ECR_REGISTRY }}/tbyte-dev-frontend:${{ steps.meta.outputs.tag }}
+          docker push ${{ env.ECR_REGISTRY }}/tbyte-dev-backend:${{ steps.meta.outputs.tag }}
 
   # 🚀 GitOps Deployment
   deploy:
