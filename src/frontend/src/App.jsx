@@ -25,7 +25,7 @@ function App() {
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', margin: '40px', background: '#f5f5f5', minHeight: '100vh' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto', background: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-        <h1 style={{ color: '#2c3e50', textAlign: 'center' }}>🚀 TByte Microservices Platform</h1>
+        <h1 style={{ color: '#2c3e50', textAlign: 'center' }}>🚀 TByte Microservices Platform - GitOps Test</h1>
         
         <div style={{ padding: '15px', margin: '20px 0', borderRadius: '5px', background: '#d4edda', border: '1px solid #c3e6cb', color: '#155724' }}>
           <strong>✅ Frontend Service:</strong> Running successfully
