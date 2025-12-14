@@ -1,0 +1,118 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: OpenTelemetryCollector
+metadata:
+  name: tbyte-collector
+  namespace: opentelemetry
+spec:
+  mode: daemonset
+  image: otel/opentelemetry-collector-k8s:0.115.0
+  
+  config: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      
+      # Kubernetes cluster metrics
+      k8s_cluster:
+        auth_type: serviceAccount
+        node_conditions_to_report: [Ready, MemoryPressure, DiskPressure, PIDPressure]
+        allocatable_types_to_report: [cpu, memory, storage]
+      
+      # Host metrics from nodes
+      hostmetrics:
+        collection_interval: 10s
+        scrapers:
+          cpu: {}
+          disk: {}
+          load: {}
+          filesystem: {}
+          memory: {}
+          network: {}
+
+    processors:
+      batch:
+        timeout: 1s
+        send_batch_size: 1024
+      
+      # Add Kubernetes metadata
+      k8sattributes:
+        auth_type: "serviceAccount"
+        passthrough: false
+        extract:
+          metadata:
+            - k8s.pod.name
+            - k8s.pod.uid
+            - k8s.deployment.name
+            - k8s.namespace.name
+            - k8s.node.name
+            - k8s.container.name
+        pod_association:
+          - sources:
+              - from: resource_attribute
+                name: k8s.pod.ip
+          - sources:
+              - from: resource_attribute
+                name: k8s.pod.uid
+          - sources:
+              - from: connection
+
+    exporters:
+      # Export metrics to Prometheus (integrate with existing monitoring)
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+        namespace: "otel"
+        const_labels:
+          cluster: "tbyte-dev"
+        
+      # Export logs to Loki (integrate with existing logging)
+      loki:
+        endpoint: "http://loki-gateway.loki.svc.cluster.local/loki/api/v1/push"
+        labels:
+          attributes:
+            k8s.pod.name: "pod_name"
+            k8s.namespace.name: "namespace"
+            k8s.container.name: "container"
+        
+      # Debug for troubleshooting
+      debug:
+        verbosity: detailed
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [k8sattributes, batch]
+          exporters: [debug]
+        
+        metrics:
+          receivers: [otlp, k8s_cluster, hostmetrics]
+          processors: [k8sattributes, batch]
+          exporters: [prometheus, debug]
+        
+        logs:
+          receivers: [otlp]
+          processors: [k8sattributes, batch]
+          exporters: [loki, debug]
+
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  tolerations:
+    - operator: Exists
+      effect: NoSchedule
+
+  env:
+    - name: KUBE_NODE_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: spec.nodeName

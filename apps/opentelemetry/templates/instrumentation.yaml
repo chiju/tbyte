@@ -1,0 +1,50 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: tbyte-instrumentation
+  namespace: opentelemetry
+spec:
+  # Exporter configuration
+  exporter:
+    endpoint: http://tbyte-collector-collector.opentelemetry.svc.cluster.local:4317
+  
+  # Propagators for distributed tracing
+  propagators:
+    - tracecontext
+    - baggage
+    - b3
+  
+  # Sampler configuration
+  sampler:
+    type: parentbased_traceidratio
+    argument: "0.1"  # Sample 10% of traces
+  
+  # Resource attributes
+  resource:
+    addK8sUIDAttributes: true
+  
+  # Language-specific instrumentation
+  nodejs:
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:0.54.0
+    env:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://tbyte-collector-collector.opentelemetry.svc.cluster.local:4317
+      - name: OTEL_EXPORTER_OTLP_PROTOCOL
+        value: grpc
+      - name: OTEL_RESOURCE_ATTRIBUTES
+        value: service.name=tbyte-backend,service.version=1.0.0
+      - name: OTEL_LOG_LEVEL
+        value: info
+  
+  # Python instrumentation (if needed)
+  python:
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:0.48b0
+    env:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://tbyte-collector-collector.opentelemetry.svc.cluster.local:4317
+      - name: OTEL_EXPORTER_OTLP_PROTOCOL
+        value: grpc
+      - name: OTEL_RESOURCE_ATTRIBUTES
+        value: service.name=tbyte-frontend,service.version=1.0.0
+      - name: OTEL_LOG_LEVEL
+        value: info
