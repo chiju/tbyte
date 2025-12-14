@@ -155,13 +155,15 @@ jobs:
           echo "📋 Planning Dev Environment (Sequential)..."
           echo "1️⃣ Planning VPC..."
           cd vpc && terragrunt plan
-          echo "2️⃣ Planning EKS..."
+          echo "2️⃣ Planning ECR..."
+          cd ../ecr && terragrunt plan
+          echo "3️⃣ Planning EKS..."
           cd ../eks && terragrunt plan
-          echo "3️⃣ Planning RDS..."
+          echo "4️⃣ Planning RDS..."
           cd ../rds && terragrunt plan
-          echo "4️⃣ Planning ArgoCD..."
+          echo "5️⃣ Planning ArgoCD..."
           cd ../argocd && terragrunt plan
-          echo "5️⃣ Planning IAM..."
+          echo "6️⃣ Planning IAM..."
           cd ../iam && terragrunt plan
 
   plan-staging:

@@ -44,6 +44,10 @@ jobs:
           echo "karpenter_node_role=$(terragrunt output -raw karpenter_node_role_name)" >> $GITHUB_OUTPUT
           echo "interruption_queue=$(terragrunt output -raw karpenter_sqs_queue_name)" >> $GITHUB_OUTPUT
           echo "grafana_role_arn=$(terragrunt output -raw grafana_cloudwatch_role_arn)" >> $GITHUB_OUTPUT
+          
+          cd ../iam
+          terragrunt init
+          echo "eso_role_arn=$(terragrunt output -raw eso_role_arn)" >> $GITHUB_OUTPUT
       
       - name: Update Karpenter values.yaml
         run: |
@@ -66,10 +70,14 @@ jobs:
         run: |
           sed -i "s|eks.amazonaws.com/role-arn: \".*\"|eks.amazonaws.com/role-arn: \"${{ steps.terraform.outputs.grafana_role_arn }}\"|g" apps/kube-prometheus-stack/values.yaml
       
+      - name: Update External Secrets ServiceAccount
+        run: |
+          sed -i "s|eks.amazonaws.com/role-arn: \".*\"|eks.amazonaws.com/role-arn: \"${{ steps.terraform.outputs.eso_role_arn }}\"|g" apps/external-secrets/values.yaml
+      
       - name: Commit and Push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add apps/karpenter/values.yaml apps/kube-prometheus-stack/values.yaml
+          git add apps/karpenter/values.yaml apps/kube-prometheus-stack/values.yaml apps/external-secrets/values.yaml
           git diff --staged --quiet || git commit -m "chore: Update app values from Terragrunt outputs [skip ci]"
           git push
