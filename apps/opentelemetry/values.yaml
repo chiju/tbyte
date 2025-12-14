@@ -2,18 +2,17 @@
 # Using official Helm chart from open-telemetry.github.io/opentelemetry-helm-charts
 
 opentelemetry-operator:
-  # Disable webhooks to avoid certificate issues
+  # Use auto-generated self-signed certificate (recommended for dev/test)
   admissionWebhooks:
-    create: false
     certManager:
       enabled: false
     autoGenerateCert:
-      enabled: false
+      enabled: true
   
-  # Set environment variable to disable webhooks
+  # Operator configuration
   manager:
-    env:
-      ENABLE_WEBHOOKS: "false"
+    collectorImage:
+      repository: "otel/opentelemetry-collector-k8s"
     resources:
       limits:
         cpu: 100m
