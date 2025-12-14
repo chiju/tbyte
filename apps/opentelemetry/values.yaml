@@ -1,2 +1,23 @@
-# Simple OpenTelemetry Operator
-# No Helm dependencies - direct Kubernetes manifests
+# OpenTelemetry Operator Configuration
+# Using official Helm chart from open-telemetry.github.io/opentelemetry-helm-charts
+
+opentelemetry-operator:
+  # Disable webhooks to avoid certificate issues
+  admissionWebhooks:
+    create: false
+    certManager:
+      enabled: false
+    autoGenerateCert:
+      enabled: false
+  
+  # Set environment variable to disable webhooks
+  manager:
+    env:
+      ENABLE_WEBHOOKS: "false"
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
