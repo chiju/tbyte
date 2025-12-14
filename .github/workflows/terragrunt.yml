@@ -300,13 +300,15 @@ jobs:
           echo "🚀 Deploying Dev Environment (Sequential)..."
           echo "1️⃣ Deploying VPC..."
           cd vpc && terragrunt apply --auto-approve
-          echo "2️⃣ Deploying EKS..."
+          echo "2️⃣ Deploying ECR..."
+          cd ../ecr && terragrunt apply --auto-approve
+          echo "3️⃣ Deploying EKS..."
           cd ../eks && terragrunt apply --auto-approve
-          echo "3️⃣ Deploying RDS..."
+          echo "4️⃣ Deploying RDS..."
           cd ../rds && terragrunt apply --auto-approve
-          echo "4️⃣ Deploying ArgoCD..."
+          echo "5️⃣ Deploying ArgoCD..."
           cd ../argocd && terragrunt apply --auto-approve
-          echo "5️⃣ Deploying IAM..."
+          echo "6️⃣ Deploying IAM..."
           cd ../iam && terragrunt apply --auto-approve
 
       - name: Smoke Tests
