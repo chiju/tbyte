@@ -68,7 +68,7 @@ jobs:
     name: Build & Push Images
     runs-on: ubuntu-latest
     needs: quality
-    if: needs.quality.outputs.should-deploy == 'true' && github.ref == 'refs/heads/main'
+    # if: needs.quality.outputs.should-deploy == 'true' && github.ref == 'refs/heads/main'  # Disabled for testing
     outputs:
       image-tag: ${{ steps.meta.outputs.tag }}
     steps:
@@ -121,7 +121,7 @@ jobs:
     name: GitOps Deployment
     runs-on: ubuntu-latest
     needs: [quality, build]
-    if: github.ref == 'refs/heads/main'
+    # if: github.ref == 'refs/heads/main'  # Disabled for testing
     steps:
       - name: Checkout
         uses: actions/checkout@v4
