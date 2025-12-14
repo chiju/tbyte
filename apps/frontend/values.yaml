@@ -1,6 +1,6 @@
 image:
   repository: 045129524082.dkr.ecr.eu-central-1.amazonaws.com/tbyte-dev-frontend
-  tag: "f8fee2ea"
+  tag: "aabf272a"
   pullPolicy: Always
 
 service:
