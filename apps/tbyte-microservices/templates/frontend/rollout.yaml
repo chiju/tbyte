@@ -31,9 +31,6 @@ spec:
         templates:
         - templateName: {{ include "tbyte-microservices.fullname" . }}-frontend-analysis
         startingStep: 1
-        args:
-        - name: service-name
-          value: {{ include "tbyte-microservices.fullname" . }}-frontend
   selector:
     matchLabels:
       {{- include "tbyte-microservices.selectorLabels" . | nindent 6 }}

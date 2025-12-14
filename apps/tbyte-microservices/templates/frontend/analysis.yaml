@@ -7,8 +7,6 @@ metadata:
     {{- include "tbyte-microservices.labels" . | nindent 4 }}
     app.kubernetes.io/component: frontend
 spec:
-  args:
-  - name: service-name
   metrics:
   - name: pod-ready-ratio
     interval: 10s
@@ -20,9 +18,9 @@ spec:
         address: http://kube-prometheus-stack-prometheus.monitoring:9090
         query: |
           (
-            sum(kube_pod_status_ready{condition="true",pod=~"{{`{{.args.service-name}}`}}-.*"}) or vector(0)
+            sum(kube_pod_status_ready{condition="true",namespace="tbyte",pod=~"tbyte-microservices-frontend-.*"}) or vector(0)
           ) / (
-            sum(kube_pod_status_ready{pod=~"{{`{{.args.service-name}}`}}-.*"}) or vector(1)
+            sum(kube_pod_status_ready{namespace="tbyte",pod=~"tbyte-microservices-frontend-.*"}) or vector(1)
           )
   - name: cpu-usage
     interval: 10s
@@ -33,5 +31,5 @@ spec:
       prometheus:
         address: http://kube-prometheus-stack-prometheus.monitoring:9090
         query: |
-          avg(rate(container_cpu_usage_seconds_total{pod=~"{{`{{.args.service-name}}`}}-.*",container!="POD",container!=""}[1m])) or vector(0)
+          avg(rate(container_cpu_usage_seconds_total{namespace="tbyte",pod=~"tbyte-microservices-frontend-.*",container!="POD",container!=""}[1m])) or vector(0)
 {{- end }}
