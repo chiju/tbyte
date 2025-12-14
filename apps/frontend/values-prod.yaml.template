@@ -1,0 +1,94 @@
+# PRODUCTION ENVIRONMENT - Ultra-Strict Thresholds
+image:
+  repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-prod-frontend
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+
+canary:
+  enabled: true
+  # Ultra-Strict Analysis for Production
+  analysis:
+    enabled: true
+    template: istio-success-rate  # Use Istio metrics for production accuracy
+    startingStep: 1  # Start analysis immediately
+  # Production-Grade Thresholds (Netflix/Google Standards)
+  thresholds:
+    successRate: 0.999     # 99.9% success rate (production grade)
+    latencyP95: 0.2        # 200ms P95 latency (production grade)
+    latencyP99: 0.5        # 500ms P99 latency (production grade)
+    errorRate: 0.001       # 0.1% error rate (production grade)
+    cpuUsage: 0.6          # 60% CPU usage (production efficiency)
+    memoryUsage: 64000000  # 64MB memory (production efficiency)
+  # Ultra-Safe Canary Progression for Production
+  steps:
+    - setWeight: 1         # Start with 1% (ultra-safe)
+    - pause: 300s          # 5 minutes observation
+    - setWeight: 5
+    - pause: 300s          # Analysis runs here
+    - setWeight: 10
+    - pause: 300s
+    - setWeight: 25
+    - pause: 180s
+    - setWeight: 50
+    - pause: 180s
+    - setWeight: 75
+    - pause: 120s
+
+istio:
+  enabled: true
+  virtualService: production-routes
+  namespace: istio-system
+
+# Production Rollback Settings (Instant Response)
+rollback:
+  enabled: true
+  failureLimit: 1          # Single failure triggers rollback
+  abortScaleDownDelay: 10  # Immediate cleanup
+  progressDeadline: 1800   # 30 minutes max (comprehensive testing)
+
+resources:
+  requests:
+    memory: "256Mi"        # Production resources
+    cpu: "200m"
+  limits:
+    memory: "512Mi" 
+    cpu: "500m"
+
+replicas: 10               # High availability replicas
+
+# Production Monitoring & Alerting
+monitoring:
+  prometheus:
+    enabled: true
+    address: "http://kube-prometheus-stack-prometheus.monitoring:9090"
+  alerts:
+    enabled: true
+    webhook: ""  # Add production alerts webhook (Slack/PagerDuty)
+    pagerduty:
+      enabled: true
+      severity: "critical"
+    slack:
+      enabled: true
+      channel: "#production-alerts"
+
+# Production Security
+security:
+  networkPolicies: true
+  podSecurityStandards: "restricted"
+  serviceAccount: "frontend-prod"
+  
+# Production Backup & Recovery
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: "30d"
+
+# Production Compliance
+compliance:
+  logging: "audit"
+  encryption: "required"
+  dataRetention: "7y"
