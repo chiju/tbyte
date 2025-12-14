@@ -96,8 +96,6 @@ jobs:
           context: src/frontend
           push: true
           tags: ${{ env.ECR_REGISTRY }}/tbyte-frontend:${{ steps.meta.outputs.tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Build & Push Backend
         uses: docker/build-push-action@v5
@@ -105,8 +103,6 @@ jobs:
           context: src/backend
           push: true
           tags: ${{ env.ECR_REGISTRY }}/tbyte-backend:${{ steps.meta.outputs.tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Security Scan
         run: |
