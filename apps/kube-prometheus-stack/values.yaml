@@ -38,7 +38,7 @@ kube-prometheus-stack:
         min_refresh_interval: 1s
     serviceAccount:
       annotations:
-        eks.amazonaws.com/role-arn: ""
+        eks.amazonaws.com/role-arn: "arn:aws:iam::045129524082:role/tbyte-dev-grafana-cloudwatch"
     sidecar:
       dashboards:
         enabled: true

@@ -1,12 +1,12 @@
-# Auto-generated from Terraform outputs by GitHub Actions
+# Auto-generated from Terragrunt outputs by GitHub Actions
 # Do not edit manually - changes will be overwritten
 
 karpenter:
   settings:
-    clusterName: eks-gitops-lab
-    clusterEndpoint: https://AB7C71420A67A93AAB9734B3C8F551A9.gr7.eu-central-1.eks.amazonaws.com
-    interruptionQueue: eks-gitops-lab
+    clusterName: tbyte-dev
+    clusterEndpoint: https://E7A41EF796194CCE55D78645C818729E.gr7.eu-central-1.eks.amazonaws.com
+    interruptionQueue: tbyte-dev
   
   serviceAccount:
     annotations:
-      eks.amazonaws.com/role-arn: arn:aws:iam::432801802107:role/KarpenterControllerRole-eks-gitops-lab
+      eks.amazonaws.com/role-arn: arn:aws:iam::045129524082:role/KarpenterControllerRole-tbyte-dev
