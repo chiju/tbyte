@@ -154,18 +154,18 @@ jobs:
           
           git push origin main
 
-      - name: Create GitHub Deployment
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.repos.createDeployment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: context.sha,
-              environment: 'development',
-              description: 'GitOps deployment via ArgoCD + Argo Rollouts',
-              auto_merge: false
-            });
+      # - name: Create GitHub Deployment  # Disabled - needs deployments permission
+      #   uses: actions/github-script@v7
+      #   with:
+      #     script: |
+      #       await github.rest.repos.createDeployment({
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         ref: context.sha,
+      #         environment: 'development',
+      #         description: 'GitOps deployment via ArgoCD + Argo Rollouts',
+      #         auto_merge: false
+      #       });
 
   # 📊 Validate Deployment
   validate:
