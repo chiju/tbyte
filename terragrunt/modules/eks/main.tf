@@ -163,6 +163,32 @@ resource "time_sleep" "wait_for_access_policy" {
   depends_on = [aws_eks_access_policy_association.terraform_executor_policy]
 }
 
+# Access entry for OrganizationAccountAccessRole (for direct access)
+resource "aws_eks_access_entry" "org_access_role" {
+  cluster_name  = aws_eks_cluster.eks_cluster_lrn.name
+  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/OrganizationAccountAccessRole"
+  type          = "STANDARD"
+
+  tags = {
+    Name        = "${var.cluster_name}-org-access-role"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
+# Admin policy for OrganizationAccountAccessRole
+resource "aws_eks_access_policy_association" "org_access_role_policy" {
+  cluster_name  = aws_eks_cluster.eks_cluster_lrn.name
+  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/OrganizationAccountAccessRole"
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [aws_eks_access_entry.org_access_role]
+}
+
 # EKS Addons - Best practice for managing core components
 resource "aws_eks_addon" "vpc_cni" {
   cluster_name                = aws_eks_cluster.eks_cluster_lrn.name
