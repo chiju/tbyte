@@ -8,7 +8,7 @@ frontend:
   enabled: true
   image:
     repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-dev-frontend
-    tag: "07294cf2"
+    tag: "43c9e71e"
 >>>>>>> 1c69c37342ee45a85193d6fed58628849273574b
     pullPolicy: Always
   
@@ -39,7 +39,7 @@ backend:
   enabled: true
   image:
     repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-dev-backend
-    tag: "07294cf2"
+    tag: "43c9e71e"
 >>>>>>> 1c69c37342ee45a85193d6fed58628849273574b
     pullPolicy: Always
   
@@ -91,8 +91,8 @@ postgres:
   image:
     repository: postgres
 <<<<<<< HEAD
-    tag: "13"
-    tag: "13"
+    tag: "43c9e71e"
+    tag: "43c9e71e"
     pullPolicy: IfNotPresent
   
   replicaCount: 1
