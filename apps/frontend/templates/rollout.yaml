@@ -7,11 +7,18 @@ spec:
   replicas: 3
   strategy:
     canary:
+      analysis:
+        templates:
+        - templateName: success-rate
+        startingStep: 2   # Start analysis after 25% traffic
+        args:
+        - name: service-name
+          value: frontend-canary
       steps:
       - setWeight: 10
       - pause: {duration: 30s}
       - setWeight: 25
-      - pause: {duration: 60s}
+      - pause: {duration: 60s}    # Analysis runs here
       - setWeight: 50
       - pause: {duration: 60s}
       - setWeight: 75
@@ -34,6 +41,10 @@ spec:
             name: frontend-dr
             canarySubsetName: canary
             stableSubsetName: stable
+      # Automatic rollback configuration
+      abortScaleDownDelaySeconds: 30
+      scaleDownDelaySeconds: 30
+      progressDeadlineSeconds: 600
   selector:
     matchLabels:
       app: frontend
@@ -56,13 +67,13 @@ spec:
             cpu: "100m"
         readinessProbe:
           httpGet:
-            path: /health
+            path: /
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 10
         livenessProbe:
           httpGet:
-            path: /health
+            path: /
             port: 80
           initialDelaySeconds: 15
           periodSeconds: 20

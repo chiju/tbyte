@@ -7,39 +7,96 @@ spec:
   args:
   - name: service-name
   metrics:
+  # Success Rate Analysis (95% threshold)
   - name: success-rate
     interval: 30s
-    count: 3
     successCondition: result[0] >= 0.95
-    failureLimit: 2
+    failureLimit: 3
     provider:
       prometheus:
-        address: http://prometheus.istio-system:9090
+        address: http://kube-prometheus-stack-prometheus.monitoring:9090
         query: |
-          sum(rate(
-            istio_requests_total{
-              destination_service_name="{{args.service-name}}",
-              response_code!~"5.*"
-            }[2m]
-          )) / 
-          sum(rate(
-            istio_requests_total{
-              destination_service_name="{{args.service-name}}"
-            }[2m]
-          ))
-  - name: latency
+          sum(rate(nginx_ingress_controller_requests{service="{{ args.service-name }}",status!~"5.."}[2m])) / 
+          sum(rate(nginx_ingress_controller_requests{service="{{ args.service-name }}"}[2m]))
+  
+  # Latency Analysis P95 (500ms threshold)
+  - name: latency-p95
     interval: 30s
-    count: 3
-    successCondition: result[0] <= 500
+    successCondition: result[0] <= 0.5
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://kube-prometheus-stack-prometheus.monitoring:9090
+        query: |
+          histogram_quantile(0.95, 
+            sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{service="{{ args.service-name }}"}[2m])) by (le)
+          )
+  
+  # Error Rate Analysis (1% threshold)
+  - name: error-rate
+    interval: 30s
+    successCondition: result[0] <= 0.01
     failureLimit: 2
     provider:
       prometheus:
-        address: http://prometheus.istio-system:9090
+        address: http://kube-prometheus-stack-prometheus.monitoring:9090
         query: |
-          histogram_quantile(0.95,
-            sum(rate(
-              istio_request_duration_milliseconds_bucket{
-                destination_service_name="{{args.service-name}}"
-              }[2m]
-            )) by (le)
-          )
+          sum(rate(nginx_ingress_controller_requests{service="{{ args.service-name }}",status=~"5.."}[2m])) / 
+          sum(rate(nginx_ingress_controller_requests{service="{{ args.service-name }}"}[2m]))
+
+  # CPU Usage Analysis (80% threshold)
+  - name: cpu-usage
+    interval: 30s
+    successCondition: result[0] <= 0.8
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://kube-prometheus-stack-prometheus.monitoring:9090
+        query: |
+          avg(rate(container_cpu_usage_seconds_total{pod=~"frontend-rollout-.*"}[2m]))
+
+  # Memory Usage Analysis (100MB threshold)
+  - name: memory-usage
+    interval: 30s
+    successCondition: result[0] <= 100000000
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://kube-prometheus-stack-prometheus.monitoring:9090
+        query: |
+          avg(container_memory_working_set_bytes{pod=~"frontend-rollout-.*"})
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: istio-success-rate
+  namespace: default
+spec:
+  args:
+  - name: service-name
+  metrics:
+  # Istio Success Rate (More Accurate)
+  - name: istio-success-rate
+    interval: 30s
+    successCondition: result[0] >= 0.95
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://kube-prometheus-stack-prometheus.monitoring:9090
+        query: |
+          sum(rate(istio_requests_total{destination_service_name="{{ args.service-name }}",response_code!~"5.."}[2m])) /
+          sum(rate(istio_requests_total{destination_service_name="{{ args.service-name }}"}[2m]))
+
+  # Istio Request Duration P99 (1s threshold)
+  - name: istio-latency-p99
+    interval: 30s  
+    successCondition: result[0] <= 1.0
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://kube-prometheus-stack-prometheus.monitoring:9090
+        query: |
+          histogram_quantile(0.99,
+            sum(rate(istio_request_duration_milliseconds_bucket{destination_service_name="{{ args.service-name }}"}[2m])) by (le)
+          ) / 1000
