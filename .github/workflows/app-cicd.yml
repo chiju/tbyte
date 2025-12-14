@@ -3,10 +3,10 @@ name: Application CI/CD Pipeline
 on:
   push:
     branches: [main, develop]
-    paths: ['src/**', 'apps/**']
+    paths: ['src/**', 'apps/**', '.github/workflows/app-cicd.yml']
   pull_request:
     branches: [main]
-    paths: ['src/**', 'apps/**']
+    paths: ['src/**', 'apps/**', '.github/workflows/app-cicd.yml']
 
 env:
   AWS_REGION: eu-central-1
