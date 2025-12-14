@@ -23,3 +23,10 @@ opentelemetry-operator:
   
   # Override namespace to match ArgoCD deployment target
   namespaceOverride: "opentelemetry"
+
+# Disable default collector and instrumentation resources that require webhooks
+defaultCollector:
+  enabled: false
+
+defaultInstrumentation:
+  enabled: false
