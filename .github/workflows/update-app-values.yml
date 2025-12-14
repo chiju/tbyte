@@ -1,0 +1,75 @@
+name: Update App Values from Terragrunt
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  update-values:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          aws-region: eu-central-1
+      
+      - name: Setup Terragrunt
+        run: |
+          wget -O terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/v0.67.16/terragrunt_linux_amd64
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+      
+      - name: Get Terragrunt Outputs
+        id: terraform
+        run: |
+          cd terragrunt/environments/dev/eks
+          terragrunt init
+          echo "cluster_name=$(terragrunt output -raw cluster_name)" >> $GITHUB_OUTPUT
+          echo "cluster_endpoint=$(terragrunt output -raw cluster_endpoint)" >> $GITHUB_OUTPUT
+          echo "karpenter_role_arn=$(terragrunt output -raw karpenter_controller_role_arn)" >> $GITHUB_OUTPUT
+          echo "karpenter_node_role=$(terragrunt output -raw karpenter_node_role_name)" >> $GITHUB_OUTPUT
+          echo "interruption_queue=$(terragrunt output -raw karpenter_sqs_queue_name)" >> $GITHUB_OUTPUT
+          echo "grafana_role_arn=$(terragrunt output -raw grafana_cloudwatch_role_arn)" >> $GITHUB_OUTPUT
+      
+      - name: Update Karpenter values.yaml
+        run: |
+          cat > apps/karpenter/values.yaml <<EOF
+          # Auto-generated from Terragrunt outputs by GitHub Actions
+          # Do not edit manually - changes will be overwritten
+          
+          karpenter:
+            settings:
+              clusterName: ${{ steps.terraform.outputs.cluster_name }}
+              clusterEndpoint: ${{ steps.terraform.outputs.cluster_endpoint }}
+              interruptionQueue: ${{ steps.terraform.outputs.interruption_queue }}
+            
+            serviceAccount:
+              annotations:
+                eks.amazonaws.com/role-arn: ${{ steps.terraform.outputs.karpenter_role_arn }}
+          EOF
+      
+      - name: Update Grafana ServiceAccount
+        run: |
+          sed -i "s|eks.amazonaws.com/role-arn: \".*\"|eks.amazonaws.com/role-arn: \"${{ steps.terraform.outputs.grafana_role_arn }}\"|g" apps/kube-prometheus-stack/values.yaml
+      
+      - name: Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add apps/karpenter/values.yaml apps/kube-prometheus-stack/values.yaml
+          git diff --staged --quiet || git commit -m "chore: Update app values from Terragrunt outputs [skip ci]"
+          git push

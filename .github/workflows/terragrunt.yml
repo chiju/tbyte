@@ -315,6 +315,12 @@ jobs:
           # Add basic connectivity tests here
           aws eks describe-cluster --name tbyte-dev --region ${{ env.AWS_REGION }} || echo "EKS cluster not ready yet"
 
+  update-app-values:
+    name: Update App Values
+    needs: [deploy-dev]
+    uses: ./.github/workflows/update-app-values.yml
+    secrets: inherit
+
   deploy-staging:
     name: Deploy Staging
     runs-on: ubuntu-latest
