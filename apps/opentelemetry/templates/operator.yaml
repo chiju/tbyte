@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opentelemetry-operator
+  namespace: opentelemetry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opentelemetry-operator
+  template:
+    metadata:
+      labels:
+        app: opentelemetry-operator
+    spec:
+      serviceAccountName: opentelemetry-operator
+      containers:
+      - name: manager
+        image: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator:0.139.0
+        args:
+        - --metrics-addr=0.0.0.0:8080
+        - --enable-leader-election
+        - --health-probe-addr=0.0.0.0:8081
+        ports:
+        - containerPort: 8080
+          name: metrics
+        - containerPort: 8081
+          name: health
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10

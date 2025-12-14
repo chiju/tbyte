@@ -1,17 +1,2 @@
-# OpenTelemetry Operator Configuration
-opentelemetry-operator:
-  enabled: true
-  admissionWebhooks:
-    create: false
-    certManager:
-      enabled: false
-    autoGenerateCert:
-      enabled: false
-  manager:
-    resources:
-      limits:
-        cpu: 100m
-        memory: 128Mi
-      requests:
-        cpu: 50m
-        memory: 64Mi
+# Simple OpenTelemetry Operator
+# No Helm dependencies - direct Kubernetes manifests
