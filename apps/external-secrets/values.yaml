@@ -3,7 +3,7 @@ external-secrets:
   # Service account with IRSA for AWS Secrets Manager access
   serviceAccount:
     annotations:
-      eks.amazonaws.com/role-arn: "arn:aws:iam::432801802107:role/eks-gitops-lab-eso-role"
+      eks.amazonaws.com/role-arn: ""
   
   # Install CRDs
   installCRDs: true
