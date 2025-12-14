@@ -1,22 +1,132 @@
-# TByte - Production-Ready Microservices Platform
+# TByte - Senior DevOps Engineer Assessment
 
-> **Senior DevOps Engineer Assessment - Complete Implementation**
-
-A comprehensive DevOps solution demonstrating production-ready microservices deployment on AWS EKS with GitOps, observability, and zero-downtime deployments.
+> **Production-Ready Microservices Platform on AWS EKS**
 
 ## 📋 Deliverables
 
 | Deliverable | Status | Link |
 |-------------|--------|------|
-| 📄 **Technical Documentation** | ✅ Complete | [Technical Docs](./docs/technical-documentation.md) |
-| 🎯 **Presentation Deck** | ✅ Complete | [Presentation](./docs/presentation.pdf) |
-| 💻 **Source Code** | ✅ Complete | [GitHub Repository](https://github.com/chiju/tbyte) |
+| 📄 **Technical Document** | ✅ Complete | [Technical Documentation](./docs/technical-documentation.md) |
+| 🎯 **Presentation Deck** | ✅ Complete | [Presentation Slides](./docs/presentation.pdf) |
+| 💻 **Source Code** | ✅ Complete | This Repository |
+
+## 🚀 How to Run and Validate the Solution
+
+### Prerequisites
+```bash
+# Required tools
+aws --version        # AWS CLI v2
+kubectl version      # Kubernetes CLI
+terragrunt --version # Terragrunt v0.50+
+docker --version     # Docker for local testing
+```
+
+### Step 1: Deploy Infrastructure with Terraform
+```bash
+# Clone repository
+git clone https://github.com/chiju/tbyte.git
+cd tbyte
+
+# Configure AWS credentials
+aws configure
+# Or export AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+
+# Deploy infrastructure
+cd terragrunt/environments/dev
+terragrunt run-all apply --terragrunt-non-interactive
+
+# Expected output: VPC, EKS cluster, RDS, ElastiCache created
+# Deployment time: ~15-20 minutes
+```
+
+### Step 2: Deploy Kubernetes Manifests
+```bash
+# Configure kubectl
+aws eks update-kubeconfig --region eu-central-1 --name tbyte-dev
+
+# Verify cluster access
+kubectl get nodes
+
+# Deploy ArgoCD (GitOps controller)
+kubectl apply -k argocd-apps/
+
+# Wait for ArgoCD to be ready
+kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
+
+# Deploy applications via GitOps
+kubectl apply -f argocd-apps/tbyte-microservices.yaml
+kubectl apply -f argocd-apps/opentelemetry.yaml
+```
+
+### Step 3: Validate the Solution
+
+#### 3.1 Infrastructure Validation
+```bash
+# Check EKS cluster
+aws eks describe-cluster --name tbyte-dev --region eu-central-1
+
+# Check RDS instance
+aws rds describe-db-instances --region eu-central-1
+
+# Check VPC and subnets
+aws ec2 describe-vpcs --filters "Name=tag:Name,Values=tbyte-dev-vpc" --region eu-central-1
+```
+
+#### 3.2 Application Validation
+```bash
+# Check all applications are synced and healthy
+kubectl get applications -n argocd
+
+# Expected output:
+# NAME                  SYNC STATUS   HEALTH STATUS
+# tbyte-microservices   Synced        Healthy
+# opentelemetry         Synced        Healthy
+
+# Check pods are running
+kubectl get pods -n tbyte
+kubectl get pods -n monitoring
+kubectl get pods -n opentelemetry
+```
+
+#### 3.3 Observability Validation
+```bash
+# Port forward to access UIs
+kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+kubectl port-forward svc/monitoring-grafana -n monitoring 3000:80 &
+kubectl port-forward svc/monitoring-kube-prometheus-prometheus -n monitoring 9090:9090 &
+
+# Access URLs:
+# ArgoCD: https://localhost:8080 (admin / get password below)
+# Grafana: http://localhost:3000 (admin / prom-operator)
+# Prometheus: http://localhost:9090
+```
+
+#### 3.4 Get Access Credentials
+```bash
+# ArgoCD admin password
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+# Grafana admin password (default: prom-operator)
+kubectl get secret monitoring-grafana -n monitoring -o jsonpath="{.data.admin-password}" | base64 -d
+```
+
+### Step 4: Test Zero-Downtime Deployment
+```bash
+# Trigger a new deployment
+kubectl patch rollout tbyte-microservices-frontend -n tbyte --type merge -p '{"spec":{"restartAt":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}}'
+
+# Watch canary deployment progress
+kubectl get rollout tbyte-microservices-frontend -n tbyte -w
+
+# Check analysis runs
+kubectl get analysisrun -n tbyte
+```
 
 ## 🏗️ Architecture Overview
 
 ```mermaid
 graph TB
-    subgraph "AWS Cloud"
+    subgraph "AWS Cloud - eu-central-1"
         subgraph "VPC (10.0.0.0/16)"
             subgraph "Public Subnets"
                 ALB[Application Load Balancer]
@@ -25,203 +135,84 @@ graph TB
             subgraph "Private Subnets"
                 EKS[EKS Cluster]
                 RDS[(RDS PostgreSQL)]
-                CACHE[(ElastiCache Redis)]
+                REDIS[(ElastiCache Redis)]
             end
         end
         ECR[ECR Registry]
-        S3[S3 Bucket]
         CW[CloudWatch]
     end
     
-    subgraph "CI/CD Pipeline"
-        GHA[GitHub Actions]
+    subgraph "CI/CD"
+        GH[GitHub Actions]
         ARGO[ArgoCD]
     end
     
-    GHA --> ECR
-    GHA --> ARGO
+    GH --> ECR
     ARGO --> EKS
     ALB --> EKS
     EKS --> RDS
-    EKS --> CACHE
-    EKS --> CW
+    EKS --> REDIS
 ```
-
-## 🚀 Quick Start
-
-### Prerequisites
-- AWS CLI configured with appropriate permissions
-- kubectl installed
-- Terragrunt installed
-- Docker installed
-
-### 1. Infrastructure Deployment
-```bash
-# Clone repository
-git clone https://github.com/chiju/tbyte.git
-cd tbyte
-
-# Deploy infrastructure
-cd terragrunt/environments/dev
-terragrunt run-all apply
-
-# Configure kubectl
-aws eks update-kubeconfig --region eu-central-1 --name tbyte-dev
-```
-
-### 2. Application Deployment
-```bash
-# Deploy ArgoCD
-kubectl apply -k argocd-apps/
-
-# Deploy applications
-kubectl apply -f argocd-apps/tbyte-microservices.yaml
-kubectl apply -f argocd-apps/opentelemetry.yaml
-```
-
-### 3. Access Applications
-```bash
-# Get ArgoCD admin password
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
-
-# Port forward ArgoCD UI
-kubectl port-forward svc/argocd-server -n argocd 8080:443
-
-# Access: https://localhost:8080
-```
-
-## 📚 Documentation Structure
-
-### Section A - Kubernetes Implementation
-- [A1: Microservices Deployment](./docs/kubernetes/microservices-deployment.md)
-- [A2: Troubleshooting Guide](./docs/kubernetes/troubleshooting-guide.md)
-
-### Section B - AWS Cloud Engineering
-- [B1: High Availability Architecture](./docs/aws/ha-architecture.md)
-- [B2: Infrastructure Troubleshooting](./docs/aws/infrastructure-troubleshooting.md)
-- [B3: CI/CD Pipeline](./docs/aws/cicd-pipeline.md)
-
-### Section C - Infrastructure as Code
-- [C1: Terraform Modules](./docs/terraform/terraform-modules.md)
-- [C2: Terraform Troubleshooting](./docs/terraform/terraform-troubleshooting.md)
-
-### Section D - Observability & Monitoring
-- [D1: Monitoring Strategy](./docs/observability/monitoring-strategy.md)
-- [D2: Performance Troubleshooting](./docs/observability/performance-troubleshooting.md)
-
-### Section E - System Design
-- [E1: Zero-Downtime Deployment](./docs/system-design/zero-downtime-deployment.md)
-- [E2: Security Implementation](./docs/system-design/security-implementation.md)
 
 ## 🛠️ Technology Stack
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| **Container Orchestration** | AWS EKS | Managed Kubernetes service |
-| **Infrastructure as Code** | Terragrunt + Terraform | Infrastructure provisioning |
-| **GitOps** | ArgoCD | Continuous deployment |
-| **Service Mesh** | Istio | Traffic management & security |
-| **Monitoring** | Prometheus + Grafana | Metrics and dashboards |
-| **Tracing** | Jaeger + OpenTelemetry | Distributed tracing |
-| **Logging** | CloudWatch + Fluent Bit | Centralized logging |
-| **Deployment Strategy** | Argo Rollouts | Canary deployments |
-| **CI/CD** | GitHub Actions | Build and test automation |
+| **Infrastructure** | Terragrunt + Terraform | Infrastructure as Code |
+| **Orchestration** | AWS EKS | Managed Kubernetes |
+| **GitOps** | ArgoCD | Continuous Deployment |
+| **Monitoring** | Prometheus + Grafana | Metrics & Dashboards |
+| **Tracing** | OpenTelemetry + Jaeger | Distributed Tracing |
+| **Deployments** | Argo Rollouts | Canary Deployments |
+| **CI/CD** | GitHub Actions | Build & Test Pipeline |
 
-## 🔧 Key Features Implemented
+## 🔍 Validation Checklist
 
-### ✅ Production-Ready Kubernetes
-- Multi-tier microservices (Frontend, Backend, Database)
-- Helm charts with comprehensive configurations
-- Resource limits, health checks, HPA, PDB
-- Network policies and security contexts
-- Secrets management and ConfigMaps
+- [ ] **Infrastructure**: VPC, EKS, RDS, ElastiCache deployed
+- [ ] **Applications**: All ArgoCD apps Synced and Healthy
+- [ ] **Monitoring**: Prometheus collecting metrics, Grafana dashboards accessible
+- [ ] **Tracing**: OpenTelemetry collector running, Jaeger UI accessible
+- [ ] **Deployments**: Canary rollouts working with analysis
+- [ ] **Security**: RBAC, Network Policies, Pod Security Standards enabled
 
-### ✅ AWS High Availability
-- Multi-AZ EKS cluster with managed node groups
-- RDS with Multi-AZ deployment
-- ElastiCache for session management
-- Application Load Balancer with health checks
-- VPC with public/private subnet architecture
+## 🚨 Troubleshooting
 
-### ✅ Zero-Downtime Deployments
-- Argo Rollouts with canary strategy
-- Automated analysis with Prometheus metrics
-- Traffic splitting with Istio
-- Rollback capabilities on failure
+### Common Issues and Fixes
 
-### ✅ Comprehensive Observability
-- OpenTelemetry for distributed tracing
-- Prometheus metrics collection
-- Grafana dashboards
-- CloudWatch integration
-- Custom SLI/SLO monitoring
+**Issue**: `kubectl` cannot connect to cluster
+```bash
+# Fix: Update kubeconfig
+aws eks update-kubeconfig --region eu-central-1 --name tbyte-dev
+```
 
-### ✅ Security Best Practices
-- IAM roles with least privilege
-- Kubernetes RBAC
-- Network policies
-- Pod security standards
-- Secrets encryption at rest
+**Issue**: ArgoCD applications stuck in "OutOfSync"
+```bash
+# Fix: Force sync
+kubectl patch application tbyte-microservices -n argocd --type merge -p '{"operation":{"sync":{}}}'
+```
 
-## 📊 Monitoring & Alerting
+**Issue**: Rollout analysis failing
+```bash
+# Check analysis run details
+kubectl describe analysisrun -n tbyte $(kubectl get analysisrun -n tbyte --sort-by=.metadata.creationTimestamp -o name | tail -1)
+```
 
-### Key Metrics Monitored
-- **Application**: Response time, error rate, throughput
-- **Infrastructure**: CPU, memory, disk, network
-- **Business**: User sessions, transaction success rate
+## 📞 Support
 
-### Alerting Strategy
-- **SEV1**: Service down, data loss risk
-- **SEV2**: Performance degradation, partial outage
-- **SEV3**: Warning thresholds, capacity planning
+For detailed technical documentation, architecture decisions, and troubleshooting guides:
 
-## 🔒 Security Implementation
+### 👉 [📖 Complete Technical Documentation](./docs/technical-documentation.md)
 
-### Multi-Layer Security
-1. **Network**: VPC, Security Groups, NACLs
-2. **Kubernetes**: RBAC, Network Policies, Pod Security
-3. **Application**: TLS, Authentication, Authorization
-4. **Data**: Encryption at rest and in transit
+## 🧹 Cleanup
 
-## 📈 Performance & Scalability
+```bash
+# Destroy infrastructure (when testing is complete)
+cd terragrunt/environments/dev
+terragrunt run-all destroy --terragrunt-non-interactive
 
-### Auto-scaling Configuration
-- **HPA**: CPU/Memory based pod scaling
-- **VPA**: Vertical pod autoscaling
-- **Cluster Autoscaler**: Node-level scaling
-- **Database**: RDS read replicas
-
-## 🚨 Disaster Recovery
-
-### Backup Strategy
-- **Database**: Automated RDS snapshots
-- **Application State**: Persistent volume snapshots
-- **Configuration**: GitOps repository backup
-
-### Recovery Procedures
-- **RTO**: < 15 minutes for application recovery
-- **RPO**: < 5 minutes for data loss
-- **Multi-region**: Cross-region replication ready
-
-## 📞 Support & Maintenance
-
-### Runbooks Available
-- [Incident Response Procedures](./docs/runbooks/incident-response.md)
-- [Deployment Procedures](./docs/runbooks/deployment-procedures.md)
-- [Backup & Recovery](./docs/runbooks/backup-recovery.md)
-
-## 🤝 Contributing
-
-This project demonstrates production-ready DevOps practices. For questions or improvements:
-
-1. Review the [Technical Documentation](./docs/technical-documentation.md)
-2. Check the [Architecture Decisions](./docs/architecture-decisions.md)
-3. Follow the [Development Guidelines](./docs/development-guidelines.md)
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+# This will remove all AWS resources and associated costs
+```
 
 ---
 
-**Assessment Completion**: This implementation addresses all requirements from the Senior DevOps Engineer assessment, demonstrating expertise in Kubernetes, AWS, Infrastructure as Code, Observability, and System Design.
+**Note**: This solution demonstrates production-ready DevOps practices including Infrastructure as Code, GitOps, observability, security, and zero-downtime deployments on AWS EKS.
