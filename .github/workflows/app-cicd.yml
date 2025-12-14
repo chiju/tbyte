@@ -95,14 +95,14 @@ jobs:
         with:
           context: src/frontend
           push: true
-          tags: ${{ env.ECR_REGISTRY }}/tbyte-frontend:${{ steps.meta.outputs.tag }}
+          tags: ${{ env.ECR_REGISTRY }}/tbyte-dev-frontend:${{ steps.meta.outputs.tag }}
 
       - name: Build & Push Backend
         uses: docker/build-push-action@v5
         with:
           context: src/backend
           push: true
-          tags: ${{ env.ECR_REGISTRY }}/tbyte-backend:${{ steps.meta.outputs.tag }}
+          tags: ${{ env.ECR_REGISTRY }}/tbyte-dev-backend:${{ steps.meta.outputs.tag }}
 
       - name: Security Scan
         run: |
@@ -113,8 +113,8 @@ jobs:
           sudo apt-get update && sudo apt-get install -y trivy
           
           # Scan (fail only on CRITICAL)
-          trivy image --exit-code 1 --severity CRITICAL ${{ env.ECR_REGISTRY }}/tbyte-frontend:${{ steps.meta.outputs.tag }}
-          trivy image --exit-code 1 --severity CRITICAL ${{ env.ECR_REGISTRY }}/tbyte-backend:${{ steps.meta.outputs.tag }}
+          trivy image --exit-code 1 --severity CRITICAL ${{ env.ECR_REGISTRY }}/tbyte-dev-frontend:${{ steps.meta.outputs.tag }}
+          trivy image --exit-code 1 --severity CRITICAL ${{ env.ECR_REGISTRY }}/tbyte-dev-backend:${{ steps.meta.outputs.tag }}
 
   # 🚀 GitOps Deployment
   deploy:
