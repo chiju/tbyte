@@ -10,7 +10,9 @@ on:
 
 env:
   AWS_REGION: eu-central-1
-  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com
+  ECR_REGISTRY_DEV: ${{ secrets.AWS_ACCOUNT_ID_DEV }}.dkr.ecr.eu-central-1.amazonaws.com
+  ECR_REGISTRY_STAGING: ${{ secrets.AWS_ACCOUNT_ID_STAGING }}.dkr.ecr.eu-central-1.amazonaws.com
+  ECR_REGISTRY_PRODUCTION: ${{ secrets.AWS_ACCOUNT_ID_PRODUCTION }}.dkr.ecr.eu-central-1.amazonaws.com
 
 permissions:
   id-token: write
@@ -62,7 +64,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to ECR
@@ -72,7 +74,7 @@ jobs:
         id: build-frontend
         run: |
           IMAGE_TAG=${GITHUB_SHA::8}
-          IMAGE_URI=$ECR_REGISTRY/tbyte-frontend:$IMAGE_TAG
+          IMAGE_URI=$ECR_REGISTRY_DEV/tbyte-dev-frontend:$IMAGE_TAG
           
           docker build -t $IMAGE_URI src/frontend/
           docker push $IMAGE_URI
@@ -81,6 +83,14 @@ jobs:
 
       - name: Build Backend Image
         id: build-backend
+        run: |
+          IMAGE_TAG=${GITHUB_SHA::8}
+          IMAGE_URI=$ECR_REGISTRY_DEV/tbyte-dev-backend:$IMAGE_TAG
+          
+          docker build -t $IMAGE_URI src/backend/
+          docker push $IMAGE_URI
+          
+          echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
         run: |
           IMAGE_TAG=${GITHUB_SHA::8}
           IMAGE_URI=$ECR_REGISTRY/tbyte-backend:$IMAGE_TAG
