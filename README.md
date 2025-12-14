@@ -16,49 +16,97 @@
 ```bash
 # Required tools
 aws --version        # AWS CLI v2
-kubectl version      # Kubernetes CLI
+kubectl version      # Kubernetes CLI  
 terragrunt --version # Terragrunt v0.50+
-docker --version     # Docker for local testing
 ```
 
-### Step 1: Deploy Infrastructure with Terraform
+### Option 1: Fork and Setup Your Own Environment
+
+#### Setup Multi-Account Structure
 ```bash
-# Clone repository
-git clone https://github.com/chiju/tbyte.git
+# 1. Fork the repository
+git clone https://github.com/YOUR_USERNAME/tbyte.git
 cd tbyte
 
-# Configure AWS credentials
-aws configure
-# Or export AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
-
-# Deploy infrastructure
-cd terragrunt/environments/dev
-terragrunt run-all apply --terragrunt-non-interactive
-
-# Expected output: VPC, EKS cluster, RDS, ElastiCache created
-# Deployment time: ~15-20 minutes
+# 2. Update account IDs in configuration
+sed -i 's/045129524082/YOUR_DEV_ACCOUNT_ID/g' terragrunt/environments/dev/terragrunt.hcl
+sed -i 's/860655786215/YOUR_STAGING_ACCOUNT_ID/g' terragrunt/environments/staging/terragrunt.hcl
+sed -i 's/136673894425/YOUR_PROD_ACCOUNT_ID/g' terragrunt/environments/prod/terragrunt.hcl
 ```
 
-### Step 2: Deploy Kubernetes Manifests
+#### Setup GitHub OIDC in All Accounts
 ```bash
-# Configure kubectl
-aws eks update-kubeconfig --region eu-central-1 --name tbyte-dev
+# Option 1: Use the multi-account OIDC setup script (recommended)
+./scripts/setup-multi-account-oidc.sh
 
-# Verify cluster access
-kubectl get nodes
+# This script will:
+# 1. Create GitHub OIDC providers in all accounts (dev, staging, prod)
+# 2. Create GitHubActionsEKSRole in each account
+# 3. Attach AdministratorAccess policies
+# 4. Create S3 state buckets for Terragrunt
+# 5. Output role ARNs for GitHub secrets
 
-# Deploy ArgoCD (GitOps controller)
-kubectl apply -k argocd-apps/
+# Option 2: Use environment-specific roles script
+./scripts/setup-multi-env-roles.sh
 
-# Wait for ArgoCD to be ready
-kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
+# This creates environment-specific role names:
+# - TByteDevGitHubActionsRole
+# - TByteStagingGitHubActionsRole 
+# - TByteProdGitHubActionsRole
 
-# Deploy applications via GitOps
-kubectl apply -f argocd-apps/tbyte-microservices.yaml
-kubectl apply -f argocd-apps/opentelemetry.yaml
+# Prerequisites: AWS Organizations access via oth_infra profile
 ```
 
-### Step 3: Validate the Solution
+#### Configure GitHub Secrets
+```bash
+# Current GitHub secrets configured (check with: gh secret list)
+# Account IDs
+AWS_ACCOUNT_ID_DEV: "045129524082"
+AWS_ACCOUNT_ID_STAGING: "860655786215"  
+AWS_ACCOUNT_ID_PRODUCTION: "136673894425"
+AWS_ACCOUNT_ID_ROOT: "your-root-account-id"
+
+# Role ARNs (depends on which setup script you used)
+# If using setup-multi-account-oidc.sh:
+AWS_ROLE_ARN_DEV: "arn:aws:iam::045129524082:role/GitHubActionsEKSRole"
+AWS_ROLE_ARN_STAGING: "arn:aws:iam::860655786215:role/GitHubActionsEKSRole"
+AWS_ROLE_ARN_PRODUCTION: "arn:aws:iam::136673894425:role/GitHubActionsEKSRole"
+
+# If using setup-multi-env-roles.sh:
+# AWS_ROLE_ARN_DEV: "arn:aws:iam::045129524082:role/TByteDevGitHubActionsRole"
+# AWS_ROLE_ARN_STAGING: "arn:aws:iam::860655786215:role/TByteStagingGitHubActionsRole"
+# AWS_ROLE_ARN_PRODUCTION: "arn:aws:iam::136673894425:role/TByteProdGitHubActionsRole"
+
+# ArgoCD GitHub App credentials
+ARGOCD_APP_ID: "github-app-id"
+ARGOCD_APP_INSTALLATION_ID: "installation-id"
+ARGOCD_APP_PRIVATE_KEY: "private-key-pem"
+
+# Repository configuration
+GIT_REPO_URL: "https://github.com/chiju/tbyte.git"
+
+# To add secrets to your forked repository:
+gh secret set AWS_ACCOUNT_ID_DEV --body "your-dev-account-id"
+gh secret set AWS_ROLE_ARN_DEV --body "arn:aws:iam::YOUR_ACCOUNT:role/GitHubActionsEKSRole"
+```
+
+#### Deploy via GitHub Actions
+```bash
+# 1. Push changes to trigger infrastructure deployment
+git add .
+git commit -m "Setup multi-account configuration"
+git push origin main
+
+# 2. Monitor GitHub Actions:
+# - Infrastructure Deployment: .github/workflows/terragrunt.yml
+# - Application Deployment: .github/workflows/app-cicd.yml
+
+# 3. Deployments run automatically on:
+# - Push to main branch
+# - Manual trigger via GitHub Actions UI
+```
+
+### Validate the Solution
 
 #### 3.1 Infrastructure Validation
 ```bash
@@ -74,52 +122,90 @@ aws ec2 describe-vpcs --filters "Name=tag:Name,Values=tbyte-dev-vpc" --region eu
 
 #### 3.2 Application Validation
 ```bash
-# Check all applications are synced and healthy
-kubectl get applications -n argocd
-
-# Expected output:
-# NAME                  SYNC STATUS   HEALTH STATUS
-# tbyte-microservices   Synced        Healthy
-# opentelemetry         Synced        Healthy
-
 # Check pods are running
 kubectl get pods -n tbyte
 kubectl get pods -n monitoring
 kubectl get pods -n opentelemetry
+
+# Check services and ingress
+kubectl get svc -n tbyte
+kubectl get rollout -n tbyte
 ```
 
-#### 3.3 Observability Validation
+#### 3.3 Test Live Application
+```bash
+# Get the load balancer URL
+LB_URL=$(kubectl get svc -n istio-system istio-gateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+echo "Load Balancer URL: $LB_URL"
+
+# Get IP address and add to hosts file
+LB_IP=$(nslookup $LB_URL | grep 'Address:' | tail -1 | awk '{print $2}')
+echo "$LB_IP tbyte.local" | sudo tee -a /etc/hosts
+
+# Test backend API health endpoint
+curl http://tbyte.local/api/health | jq .
+
+# Expected response:
+# {
+#   "status": "healthy",
+#   "timestamp": "2025-12-14T21:40:48.701Z",
+#   "service": "tbyte-backend",
+#   "version": "1.0.0"
+# }
+
+# Test users API (connects to PostgreSQL RDS)
+curl http://tbyte.local/api/users | jq .
+
+# Expected response:
+# {
+#   "success": true,
+#   "data": [
+#     {
+#       "id": 1,
+#       "name": "John Doe",
+#       "email": "john@tbyte.com",
+#       "created_at": "2025-12-14T12:10:14.297Z"
+#     }
+#   ],
+#   "count": 3
+# }
+
+# Test frontend in browser
+open http://tbyte.local
+
+# Or test frontend via curl
+curl http://tbyte.local | head -10
+# Expected: HTML page with "TByte Microservices" title
+```
+
+#### 3.4 Observability Validation
 ```bash
 # Port forward to access UIs
-kubectl port-forward svc/argocd-server -n argocd 8080:443 &
 kubectl port-forward svc/monitoring-grafana -n monitoring 3000:80 &
 kubectl port-forward svc/monitoring-kube-prometheus-prometheus -n monitoring 9090:9090 &
 
 # Access URLs:
-# ArgoCD: https://localhost:8080 (admin / get password below)
 # Grafana: http://localhost:3000 (admin / prom-operator)
 # Prometheus: http://localhost:9090
 ```
 
-#### 3.4 Get Access Credentials
-```bash
-# ArgoCD admin password
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
-
-# Grafana admin password (default: prom-operator)
-kubectl get secret monitoring-grafana -n monitoring -o jsonpath="{.data.admin-password}" | base64 -d
-```
-
-### Step 4: Test Zero-Downtime Deployment
+#### 3.5 Test Zero-Downtime Deployment
 ```bash
 # Trigger a new deployment
-kubectl patch rollout tbyte-microservices-frontend -n tbyte --type merge -p '{"spec":{"restartAt":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}}'
+kubectl patch rollout tbyte-microservices-frontend -n tbyte --type merge \
+  -p '{"spec":{"restartAt":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}}'
 
 # Watch canary deployment progress
 kubectl get rollout tbyte-microservices-frontend -n tbyte -w
 
 # Check analysis runs
 kubectl get analysisrun -n tbyte
+
+# Verify no downtime during deployment
+while true; do
+  curl -s -H "Host: tbyte.local" http://$LB_URL/api/health | jq -r .status
+  sleep 1
+done
 ```
 
 ## 🏗️ Architecture Overview

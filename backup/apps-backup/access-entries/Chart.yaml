@@ -1,5 +1,0 @@
-apiVersion: v2
-name: access-entries
-description: EKS Access Entries for Identity Center SSO users
-type: application
-version: 1.0.0
