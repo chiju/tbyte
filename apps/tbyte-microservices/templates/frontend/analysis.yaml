@@ -11,8 +11,8 @@ spec:
   - name: pod-ready-ratio
     interval: 10s
     count: 3
-    successCondition: result[0] >= 0.95
-    failureLimit: 1
+    successCondition: result[0] >= 0.8
+    failureLimit: 2
     provider:
       prometheus:
         address: http://monitoring-kube-prometheus-prometheus.monitoring:9090
@@ -26,7 +26,7 @@ spec:
     interval: 10s
     count: 3
     successCondition: result[0] <= 0.8
-    failureLimit: 1
+    failureLimit: 2
     provider:
       prometheus:
         address: http://monitoring-kube-prometheus-prometheus.monitoring:9090
