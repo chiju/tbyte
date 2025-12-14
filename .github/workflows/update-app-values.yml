@@ -70,6 +70,25 @@ jobs:
         run: |
           sed -i "s|eks.amazonaws.com/role-arn: \".*\"|eks.amazonaws.com/role-arn: \"${{ steps.terraform.outputs.grafana_role_arn }}\"|g" apps/kube-prometheus-stack/values.yaml
       
+      - name: Update EC2NodeClass
+        run: |
+          cat > apps/karpenter/templates/ec2nodeclass.yaml <<EOF
+          apiVersion: karpenter.k8s.aws/v1
+          kind: EC2NodeClass
+          metadata:
+            name: default
+          spec:
+            role: ${{ steps.terraform.outputs.karpenter_node_role }}
+            amiSelectorTerms:
+              - alias: al2023@latest
+            subnetSelectorTerms:
+              - tags:
+                  karpenter.sh/discovery: ${{ steps.terraform.outputs.cluster_name }}
+            securityGroupSelectorTerms:
+              - tags:
+                  karpenter.sh/discovery: ${{ steps.terraform.outputs.cluster_name }}
+          EOF
+      
       - name: Update External Secrets ServiceAccount
         run: |
           sed -i "s|eks.amazonaws.com/role-arn: \".*\"|eks.amazonaws.com/role-arn: \"${{ steps.terraform.outputs.eso_role_arn }}\"|g" apps/external-secrets/values.yaml
@@ -78,6 +97,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add apps/karpenter/values.yaml apps/kube-prometheus-stack/values.yaml apps/external-secrets/values.yaml
+          git add apps/karpenter/values.yaml apps/karpenter/templates/ec2nodeclass.yaml apps/kube-prometheus-stack/values.yaml apps/external-secrets/values.yaml
           git diff --staged --quiet || git commit -m "chore: Update app values from Terragrunt outputs [skip ci]"
           git push
