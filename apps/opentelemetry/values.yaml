@@ -20,3 +20,6 @@ opentelemetry-operator:
       requests:
         cpu: 50m
         memory: 64Mi
+  
+  # Override namespace to match ArgoCD deployment target
+  namespaceOverride: "opentelemetry"
