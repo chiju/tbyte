@@ -9,7 +9,6 @@ frontend:
   image:
     repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-dev-frontend
     tag: "43c9e71e"
->>>>>>> 1c69c37342ee45a85193d6fed58628849273574b
     pullPolicy: Always
   
   replicaCount: 2
@@ -40,7 +39,6 @@ backend:
   image:
     repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-dev-backend
     tag: "43c9e71e"
->>>>>>> 1c69c37342ee45a85193d6fed58628849273574b
     pullPolicy: Always
   
   replicaCount: 2
