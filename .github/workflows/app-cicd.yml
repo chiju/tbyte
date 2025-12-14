@@ -172,7 +172,8 @@ jobs:
               ref: context.sha,
               environment: 'development',
               description: 'GitOps deployment via ArgoCD + Argo Rollouts',
-              auto_merge: false
+              auto_merge: false,
+              required_contexts: []
             });
 
   # 📊 Validate Deployment
