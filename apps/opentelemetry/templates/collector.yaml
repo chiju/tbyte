@@ -1,0 +1,112 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: tbyte-collector
+  namespace: opentelemetry
+spec:
+  mode: deployment
+  replicas: 2
+  config: |
+    receivers:
+      # OTLP receiver for traces and metrics from applications
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      
+      # Prometheus receiver to scrape metrics
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: 'tbyte-frontend'
+              static_configs:
+                - targets: ['tbyte-microservices-frontend.tbyte.svc.cluster.local:8080']
+            - job_name: 'tbyte-backend'
+              static_configs:
+                - targets: ['tbyte-microservices-backend.tbyte.svc.cluster.local:8080']
+    
+    processors:
+      # Batch processor for performance
+      batch:
+        timeout: 1s
+        send_batch_size: 1024
+      
+      # Resource processor to add cluster info
+      resource:
+        attributes:
+          - key: cluster.name
+            value: tbyte-dev
+            action: upsert
+          - key: environment
+            value: development
+            action: upsert
+      
+      # Memory limiter to prevent OOM
+      memory_limiter:
+        limit_mib: 256
+    
+    exporters:
+      # Export to Prometheus (existing Grafana integration)
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+        namespace: "otel"
+        const_labels:
+          cluster: "tbyte-dev"
+      
+      # Export traces to Jaeger (for distributed tracing)
+      jaeger:
+        endpoint: jaeger-collector.monitoring.svc.cluster.local:14250
+        tls:
+          insecure: true
+      
+      # Logging exporter for debugging
+      logging:
+        loglevel: info
+    
+    service:
+      pipelines:
+        # Traces pipeline
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [jaeger, logging]
+        
+        # Metrics pipeline  
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [memory_limiter, resource, batch]
+          exporters: [prometheus, logging]
+      
+      extensions: [health_check]
+      
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tbyte-collector
+  namespace: opentelemetry
+  labels:
+    app: tbyte-collector
+spec:
+  selector:
+    app.kubernetes.io/name: tbyte-collector
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+    - name: prometheus
+      port: 8889
+      targetPort: 8889
+    - name: health
+      port: 13133
+      targetPort: 13133
+  type: ClusterIP
