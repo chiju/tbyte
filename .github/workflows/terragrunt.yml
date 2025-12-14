@@ -9,6 +9,10 @@ on:
     paths: ['terragrunt/**', '.github/workflows/terragrunt.yml']
   workflow_dispatch:
 
+concurrency:
+  group: terragrunt-deployment
+  cancel-in-progress: false
+
 env:
   AWS_REGION: eu-central-1
   TERRAGRUNT_VERSION: 0.67.16
