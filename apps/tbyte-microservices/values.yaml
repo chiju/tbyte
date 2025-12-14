@@ -85,12 +85,11 @@ backend:
 
 # PostgreSQL Configuration
 postgres:
-  enabled: true
+  enabled: false  # Disabled - Using RDS
+  # RDS: tbyte-dev-postgres.ctyyuase48r8.eu-central-1.rds.amazonaws.com
   image:
     repository: postgres
-<<<<<<< HEAD
-    tag: "43c9e71e"
-    tag: "43c9e71e"
+    tag: "13"
     pullPolicy: IfNotPresent
   
   replicaCount: 1
