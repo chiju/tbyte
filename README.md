@@ -10,6 +10,19 @@
 | 🎯 **Presentation Deck** | ✅ Complete | [Presentation Slides](./docs/presentation.pptx) |
 | 💻 **Source Code** | ✅ Complete | This Repository |
 
+## 📁 Project Structure
+
+```
+tbyte/
+├── .github/          # GitHub Actions CI/CD pipelines
+├── apps/             # Helm charts for Kubernetes applications  
+├── argocd-apps/      # ArgoCD application definitions (GitOps)
+├── docs/             # Technical documentation and assessment tasks
+├── scripts/          # Automation scripts for setup and deployment
+├── src/              # Application source code (frontend + backend)
+└── terragrunt/       # Infrastructure as Code (Terraform modules)
+```
+
 ## 🚀 How to Run and Validate the Solution
 
 ### Prerequisites
