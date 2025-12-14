@@ -7,7 +7,7 @@ global:
 frontend:
   enabled: true
   image:
-    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/eks-gitops-lab-frontend
+    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-dev-frontend
     tag: "b6ad9f60"
     pullPolicy: Always
   
@@ -37,7 +37,7 @@ frontend:
 backend:
   enabled: true
   image:
-    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/eks-gitops-lab-backend
+    repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-dev-backend
     tag: "b6ad9f60"
     pullPolicy: Always
   
@@ -88,7 +88,7 @@ postgres:
   enabled: true
   image:
     repository: postgres
-    tag: "b6ad9f60"
+    tag: "13"
     pullPolicy: IfNotPresent
   
   replicaCount: 1
