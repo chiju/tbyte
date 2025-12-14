@@ -1,0 +1,110 @@
+{{- if .Values.frontend.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ include "tbyte-microservices.fullname" . }}-frontend
+  labels:
+    {{- include "tbyte-microservices.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  {{- if not .Values.frontend.autoscaling.enabled }}
+  replicas: {{ .Values.frontend.replicaCount }}
+  {{- end }}
+  strategy:
+    canary:
+      steps:
+      - setWeight: 10
+      - pause: {duration: 30s}
+      - setWeight: 25
+      - pause: {duration: 30s}
+      - setWeight: 50
+      - pause: {duration: 30s}
+      - setWeight: 75
+      - pause: {duration: 30s}
+      canaryService: {{ include "tbyte-microservices.fullname" . }}-frontend-canary
+      stableService: {{ include "tbyte-microservices.fullname" . }}-frontend
+      trafficRouting:
+        istio:
+          virtualService:
+            name: common-routes
+            namespace: istio-system
+            routes:
+            - primary
+      analysis:
+        templates:
+        - templateName: {{ include "tbyte-microservices.fullname" . }}-frontend-analysis
+        startingStep: 1
+        args:
+        - name: service-name
+          value: {{ include "tbyte-microservices.fullname" . }}-frontend
+  selector:
+    matchLabels:
+      {{- include "tbyte-microservices.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        {{- include "tbyte-microservices.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: frontend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        fsGroup: 101
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.frontend.service.targetPort }}
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
+            - name: html-content
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ include "tbyte-microservices.fullname" . }}-frontend-config
+        - name: html-content
+          configMap:
+            name: {{ include "tbyte-microservices.fullname" . }}-frontend-html
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+{{- end }}

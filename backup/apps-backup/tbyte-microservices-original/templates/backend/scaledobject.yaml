@@ -1,0 +1,23 @@
+{{- if and .Values.backend.enabled .Values.backend.autoscaling.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "tbyte-microservices.fullname" . }}-backend
+  labels:
+    {{- include "tbyte-microservices.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  scaleTargetRef:
+    name: {{ include "tbyte-microservices.fullname" . }}-backend
+  minReplicaCount: {{ .Values.backend.autoscaling.minReplicas }}
+  maxReplicaCount: {{ .Values.backend.autoscaling.maxReplicas }}
+  triggers:
+  - type: cpu
+    metricType: Utilization
+    metadata:
+      value: "{{ .Values.backend.autoscaling.targetCPUUtilizationPercentage | default 70 }}"
+  - type: memory
+    metricType: Utilization
+    metadata:
+      value: "{{ .Values.backend.autoscaling.targetMemoryUtilizationPercentage | default 80 }}"
+{{- end }}

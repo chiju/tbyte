@@ -1,0 +1,105 @@
+# PRODUCTION ENVIRONMENT VALUES
+# Maximum resources, strictest security, highest availability
+
+# Frontend Configuration
+frontend:
+  enabled: true
+  image:
+    repository: 045129524082.dkr.ecr.eu-central-1.amazonaws.com/tbyte-prod-frontend
+    tag: "latest"
+    pullPolicy: Always
+  
+  replicaCount: 5  # High availability
+  
+  resources:
+    requests:
+      cpu: 500m      # Production-grade CPU
+      memory: 512Mi   # Production-grade memory
+    limits:
+      cpu: 2000m
+      memory: 1Gi
+  
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 5
+    maxReplicas: 50   # Scale for production load
+    targetCPUUtilizationPercentage: 50  # Conservative scaling
+    targetMemoryUtilizationPercentage: 60
+
+# Backend Configuration  
+backend:
+  enabled: true
+  image:
+    repository: 045129524082.dkr.ecr.eu-central-1.amazonaws.com/tbyte-prod-backend
+    tag: "latest"
+    pullPolicy: Always
+  
+  replicaCount: 5  # High availability
+  
+  resources:
+    requests:
+      cpu: 500m      # Production-grade CPU
+      memory: 512Mi   # Production-grade memory
+    limits:
+      cpu: 2000m
+      memory: 1Gi
+  
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 5
+    maxReplicas: 50
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 60
+
+# PostgreSQL Configuration
+postgres:
+  enabled: false  # Using RDS
+  # RDS Production: tbyte-prod-postgres.ctyyuase48r8.eu-central-1.rds.amazonaws.com
+  
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  namespace: monitoring
+  alerting:
+    enabled: true
+    pagerduty: true
+    slack: true
+  
+# Security Configuration (Production-grade)
+security:
+  networkPolicies:
+    enabled: true
+    denyAll: true  # Strict network isolation
+  podSecurityStandards: "restricted"
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::045129524082:role/tbyte-prod-service-role"
+  
+# Backup Configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: "30d"
+  
+# Environment-specific settings
+environment:
+  name: "production"
+  logLevel: "warn"  # Less verbose logging
+  debug: false
+  
+# Compliance
+compliance:
+  audit: true
+  encryption: "required"
+  dataRetention: "7y"

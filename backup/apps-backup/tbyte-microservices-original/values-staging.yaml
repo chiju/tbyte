@@ -1,0 +1,84 @@
+# STAGING ENVIRONMENT VALUES
+# Stricter thresholds and more resources than dev
+
+# Frontend Configuration
+frontend:
+  enabled: true
+  image:
+    repository: 045129524082.dkr.ecr.eu-central-1.amazonaws.com/tbyte-staging-frontend
+    tag: "latest"
+    pullPolicy: Always
+  
+  replicaCount: 3  # More replicas than dev
+  
+  resources:
+    requests:
+      cpu: 200m      # More CPU than dev
+      memory: 256Mi   # More memory than dev
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 15
+    targetCPUUtilizationPercentage: 60  # Lower threshold (more aggressive)
+    targetMemoryUtilizationPercentage: 70
+
+# Backend Configuration  
+backend:
+  enabled: true
+  image:
+    repository: 045129524082.dkr.ecr.eu-central-1.amazonaws.com/tbyte-staging-backend
+    tag: "latest"
+    pullPolicy: Always
+  
+  replicaCount: 3  # More replicas than dev
+  
+  resources:
+    requests:
+      cpu: 200m      # More CPU than dev
+      memory: 256Mi   # More memory than dev
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 15
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 70
+
+# PostgreSQL Configuration
+postgres:
+  enabled: false  # Using RDS
+  # RDS Staging: tbyte-staging-postgres.ctyyuase48r8.eu-central-1.rds.amazonaws.com
+  
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  namespace: monitoring
+  
+# Security Configuration
+security:
+  networkPolicies:
+    enabled: true
+  podSecurityStandards: "restricted"
+  
+# Environment-specific settings
+environment:
+  name: "staging"
+  logLevel: "info"
+  debug: false
