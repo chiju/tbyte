@@ -8,7 +8,7 @@ frontend:
   enabled: true
   image:
     repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/eks-gitops-lab-frontend
-    tag: "ce626534"
+    tag: "2c054501"
     pullPolicy: Always
   
   replicaCount: 2
@@ -38,7 +38,7 @@ backend:
   enabled: true
   image:
     repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/eks-gitops-lab-backend
-    tag: "ce626534"
+    tag: "2c054501"
     pullPolicy: Always
   
   replicaCount: 2
@@ -88,7 +88,7 @@ postgres:
   enabled: true
   image:
     repository: postgres
-    tag: "ce626534"
+    tag: "2c054501"
     pullPolicy: IfNotPresent
   
   replicaCount: 1
