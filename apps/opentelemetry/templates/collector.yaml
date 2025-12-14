@@ -5,7 +5,7 @@ metadata:
   namespace: opentelemetry
 spec:
   mode: daemonset
-  image: otel/opentelemetry-collector-k8s:0.115.0
+  image: otel/opentelemetry-collector-contrib:0.115.0
   
   config: |
     receivers:

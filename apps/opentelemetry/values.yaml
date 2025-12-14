@@ -23,7 +23,7 @@ opentelemetry-collector:
   enabled: true
   mode: daemonset
   image:
-    repository: otel/opentelemetry-collector-k8s
+    repository: otel/opentelemetry-collector-contrib
     tag: "0.115.0"
   
   # Collector configuration
