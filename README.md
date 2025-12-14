@@ -2,15 +2,15 @@
 
 > **Production-Ready Microservices Platform on AWS EKS**
 
-## 📋 Deliverables
+## Deliverables
 
 | Deliverable | Status | Link |
 |-------------|--------|------|
-| 📄 **Technical Document** | ✅ Complete | [Technical Documentation](./docs/technical-documentation.md) |
-| 🎯 **Presentation Deck** | ✅ Complete | [Presentation Slides](./docs/presentation.pptx) |
-| 💻 **Source Code** | ✅ Complete | This Repository |
+| **Technical Document** | Complete | [Technical Documentation](./docs/technical-documentation.md) |
+| **Presentation Deck** | Complete | [Presentation Slides](./docs/presentation.pptx) |
+| **Source Code** | Complete | This Repository |
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 tbyte/
@@ -23,7 +23,7 @@ tbyte/
 └── terragrunt/       # Infrastructure as Code (Terraform modules)
 ```
 
-## 🚀 How to Run and Validate the Solution
+## How to Run and Validate the Solution
 
 ### Prerequisites
 ```bash
@@ -221,7 +221,7 @@ while true; do
 done
 ```
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ```mermaid
 graph TB
@@ -253,7 +253,7 @@ graph TB
     EKS --> REDIS
 ```
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
@@ -265,7 +265,7 @@ graph TB
 | **Deployments** | Argo Rollouts | Canary Deployments |
 | **CI/CD** | GitHub Actions | Build & Test Pipeline |
 
-## 🔍 Validation Checklist
+## Validation Checklist
 
 - [ ] **Infrastructure**: VPC, EKS, RDS, ElastiCache deployed
 - [ ] **Applications**: All ArgoCD apps Synced and Healthy
@@ -274,7 +274,7 @@ graph TB
 - [ ] **Deployments**: Canary rollouts working with analysis
 - [ ] **Security**: RBAC, Network Policies, Pod Security Standards enabled
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
 ### Common Issues and Fixes
 
@@ -296,13 +296,13 @@ kubectl patch application tbyte-microservices -n argocd --type merge -p '{"opera
 kubectl describe analysisrun -n tbyte $(kubectl get analysisrun -n tbyte --sort-by=.metadata.creationTimestamp -o name | tail -1)
 ```
 
-## 📞 Support
+## Support
 
 For detailed technical documentation, architecture decisions, and troubleshooting guides:
 
-### 👉 [📖 Complete Technical Documentation](./docs/technical-documentation.md)
+### [Complete Technical Documentation](./docs/technical-documentation.md)
 
-## 🧹 Cleanup
+## Cleanup
 
 ```bash
 # Destroy infrastructure (when testing is complete)
