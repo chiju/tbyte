@@ -26,8 +26,7 @@ spec:
       trafficRouting:
         istio:
           virtualService:
-            name: common-routes
-            namespace: istio-system
+            name: {{ include "tbyte-microservices.fullname" . }}-frontend-vs
       analysis:
         templates:
         - templateName: {{ include "tbyte-microservices.fullname" . }}-frontend-analysis
