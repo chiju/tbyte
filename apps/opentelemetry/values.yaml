@@ -2,10 +2,11 @@
 opentelemetry-operator:
   enabled: true
   admissionWebhooks:
+    create: false
     certManager:
       enabled: false
     autoGenerateCert:
-      enabled: true
+      enabled: false
   manager:
     resources:
       limits:
