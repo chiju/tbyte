@@ -1,0 +1,15 @@
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: frontend-dr
+  namespace: default
+spec:
+  host: tbyte-microservices-frontend.tbyte.svc.cluster.local
+  subsets:
+  - name: stable
+    labels:
+      app: frontend
+  - name: canary
+    labels:
+      app: frontend
