@@ -7,7 +7,7 @@
 | Deliverable | Status | Link |
 |-------------|--------|------|
 | 📄 **Technical Document** | ✅ Complete | [Technical Documentation](./docs/technical-documentation.md) |
-| 🎯 **Presentation Deck** | ✅ Complete | [Presentation Slides](./docs/presentation.pdf) |
+| 🎯 **Presentation Deck** | ✅ Complete | [Presentation Slides](./docs/presentation.ppt) |
 | 💻 **Source Code** | ✅ Complete | This Repository |
 
 ## 🚀 How to Run and Validate the Solution
