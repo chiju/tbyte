@@ -1,5 +1,5 @@
 # Multi-stage build for production Node.js app
-FROM node:18-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ COPY package*.json ./
 RUN npm install --omit=dev
 
 # Production stage
-FROM node:18-alpine
+FROM node:24-alpine
 
 # Create app user
 RUN addgroup -g 1001 -S nodejs && \
