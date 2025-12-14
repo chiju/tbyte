@@ -68,14 +68,11 @@ spec:
         const_labels:
           cluster: "tbyte-dev"
         
-      # Export logs to Loki (integrate with existing logging)
-      loki:
-        endpoint: "http://loki-gateway.loki.svc.cluster.local/loki/api/v1/push"
-        labels:
-          attributes:
-            k8s.pod.name: "pod_name"
-            k8s.namespace.name: "namespace"
-            k8s.container.name: "container"
+      # Export traces via OTLP (can be sent to Jaeger, Grafana, etc.)
+      otlp/traces:
+        endpoint: "http://jaeger-collector.istio-system.svc.cluster.local:4317"
+        tls:
+          insecure: true
         
       # Debug for troubleshooting
       debug:
@@ -86,17 +83,12 @@ spec:
         traces:
           receivers: [otlp]
           processors: [k8sattributes, batch]
-          exporters: [debug]
+          exporters: [otlp/traces, debug]
         
         metrics:
           receivers: [otlp, k8s_cluster, hostmetrics]
           processors: [k8sattributes, batch]
           exporters: [prometheus, debug]
-        
-        logs:
-          receivers: [otlp]
-          processors: [k8sattributes, batch]
-          exporters: [loki, debug]
 
   resources:
     limits:
