@@ -10,7 +10,7 @@ spec:
   args:
   - name: service-name
   metrics:
-  - name: success-rate
+  - name: pod-ready-ratio
     interval: 10s
     count: 3
     successCondition: result[0] >= 0.95
@@ -19,29 +19,19 @@ spec:
       prometheus:
         address: http://kube-prometheus-stack-prometheus.monitoring:9090
         query: |
-          sum(rate(istio_requests_total{destination_service_name="{{`{{.args.service-name}}`}}",response_code!~"5.."}[1m])) /
-          sum(rate(istio_requests_total{destination_service_name="{{`{{.args.service-name}}`}}"}[1m]))
-  - name: avg-response-time
+          (
+            sum(kube_pod_status_ready{condition="true",pod=~"{{`{{.args.service-name}}`}}-.*"}) or vector(0)
+          ) / (
+            sum(kube_pod_status_ready{pod=~"{{`{{.args.service-name}}`}}-.*"}) or vector(1)
+          )
+  - name: cpu-usage
     interval: 10s
     count: 3
-    successCondition: result[0] <= 0.5
+    successCondition: result[0] <= 0.8
     failureLimit: 1
     provider:
       prometheus:
         address: http://kube-prometheus-stack-prometheus.monitoring:9090
         query: |
-          histogram_quantile(0.95,
-            sum(rate(istio_request_duration_milliseconds_bucket{destination_service_name="{{`{{.args.service-name}}`}}"}[1m])) by (le)
-          ) / 1000
-  - name: error-rate
-    interval: 10s
-    count: 3
-    successCondition: result[0] <= 0.05
-    failureLimit: 1
-    provider:
-      prometheus:
-        address: http://kube-prometheus-stack-prometheus.monitoring:9090
-        query: |
-          sum(rate(istio_requests_total{destination_service_name="{{`{{.args.service-name}}`}}",response_code=~"5.."}[1m])) /
-          sum(rate(istio_requests_total{destination_service_name="{{`{{.args.service-name}}`}}"}[1m]))
+          avg(rate(container_cpu_usage_seconds_total{pod=~"{{`{{.args.service-name}}`}}-.*",container!="POD",container!=""}[1m])) or vector(0)
 {{- end }}
