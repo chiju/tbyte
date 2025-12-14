@@ -1,0 +1,35 @@
+image:
+  repository: 432801802107.dkr.ecr.eu-central-1.amazonaws.com/tbyte-dev-frontend
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+
+canary:
+  enabled: true
+  steps:
+    - setWeight: 10
+    - pause: 30s
+    - setWeight: 25  
+    - pause: 60s
+    - setWeight: 50
+    - pause: 60s
+    - setWeight: 75
+    - pause: 30s
+
+istio:
+  enabled: true
+  virtualService: common-routes
+  namespace: istio-system
+
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "50m"
+  limits:
+    memory: "128Mi" 
+    cpu: "100m"
+
+replicas: 3

@@ -138,7 +138,11 @@ jobs:
 
       - name: Update Helm Values
         run: |
-          # Update image tags in Helm values
+          # Update frontend Argo Rollout for canary deployment
+          sed -i "s|repository:.*|repository: ${{ env.ECR_REGISTRY }}/tbyte-dev-frontend|g" apps/frontend/values.yaml
+          sed -i "s|tag:.*|tag: \"${{ needs.build.outputs.image-tag }}\"|g" apps/frontend/values.yaml
+          
+          # Update backend standard deployment
           sed -i "s|tag: \".*\"|tag: \"${{ needs.build.outputs.image-tag }}\"|g" apps/tbyte-microservices/values.yaml
 
       - name: Commit & Push GitOps Changes
@@ -146,9 +150,12 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           
-          git add apps/tbyte-microservices/values.yaml
-          git commit -m "🚀 Deploy ${{ needs.build.outputs.image-tag }} via GitOps
+          git add apps/frontend/values.yaml apps/tbyte-microservices/values.yaml
+          git commit -m "🚀 Deploy ${{ needs.build.outputs.image-tag }} via Argo Rollouts Canary
 
+          - Frontend: Canary deployment (10%→25%→50%→75%→100%)
+          - Backend: Standard deployment
+          - Istio traffic splitting enabled  
           - Commit: ${{ github.sha }}
           - Actor: ${{ github.actor }}
           - Workflow: ${{ github.run_id }}" || exit 0
