@@ -90,7 +90,7 @@ spec:
       trafficRouting:
         istio:
           virtualService:
-            name: tbyte-microservices-frontend-vs
+            name: tbyte-microservices-gateway-vs
 ```
 
 #### Automated Analysis Template
@@ -148,34 +148,98 @@ spec:
 
 #### Istio Traffic Splitting
 ```yaml
-# apps/tbyte-microservices/templates/frontend/virtualservice.yaml
+# apps/tbyte-microservices/templates/frontend/frontend-virtualservice.yaml
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: tbyte-microservices-frontend-vs
+  name: tbyte-microservices-gateway-vs
 spec:
+  gateways:
+  - istio-system/common-gateway
   hosts:
-  - tbyte-microservices-frontend
+  - tbyte.local
   http:
+  # Frontend Routes (Canary-enabled)
   - match:
-    - headers:
-        canary:
-          exact: "true"
+    - uri:
+        prefix: /
     route:
     - destination:
         host: tbyte-microservices-frontend
-        subset: canary
-      weight: 100
-  - route:
-    - destination:
-        host: tbyte-microservices-frontend
-        subset: stable
+        port:
+          number: 80
       weight: 100  # Dynamically adjusted by Argo Rollouts
     - destination:
-        host: tbyte-microservices-frontend
-        subset: canary
+        host: tbyte-microservices-frontend-canary
+        port:
+          number: 80
       weight: 0    # Dynamically adjusted by Argo Rollouts
 ```
+
+#### Backend API Routing (Separate VirtualService)
+```yaml
+# apps/tbyte-microservices/templates/backend/backend-virtualservice.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: tbyte-microservices-backend-vs
+spec:
+  gateways:
+  - istio-system/common-gateway
+  hosts:
+  - tbyte.local
+  http:
+  # Backend API Routes (Static routing)
+  - match:
+    - uri:
+        exact: /api/health
+    rewrite:
+      uri: /health
+    route:
+    - destination:
+        host: tbyte-microservices-backend
+        port:
+          number: 3000
+  - match:
+    - uri:
+        exact: /api/users
+    rewrite:
+      uri: /users
+    route:
+    - destination:
+        host: tbyte-microservices-backend
+        port:
+          number: 3000
+```
+
+### VirtualService Architecture
+
+#### Clean Separation of Concerns
+The implementation uses separate VirtualServices for different traffic types:
+
+**File Structure:**
+```
+📁 templates/
+├── backend/
+│   └── backend-virtualservice.yaml    ← Backend API routes (/api/*)
+├── frontend/
+│   └── frontend-virtualservice.yaml   ← Frontend routes (/*) with canary
+└── ...
+```
+
+**Traffic Flow:**
+```
+tbyte.local/api/health → backend-vs → Backend Service (static routing)
+tbyte.local/api/users  → backend-vs → Backend Service (static routing)
+tbyte.local/*          → gateway-vs → Frontend Services (canary routing)
+grafana.local          → common-routes → Grafana (static routing)
+```
+
+**Benefits:**
+- ✅ **Clean Architecture**: Each service manages its own routing
+- ✅ **Canary Isolation**: Only frontend traffic participates in canary deployments
+- ✅ **Route Precedence**: Specific API routes processed before catch-all frontend routes
+- ✅ **Independent Scaling**: Backend and frontend can be deployed independently
 
 ### Alternative Strategies Considered
 
@@ -296,7 +360,10 @@ kubectl get rollout tbyte-microservices-frontend -n tbyte -w
 kubectl get analysisrun -n tbyte
 
 # Verify traffic splitting
-kubectl describe virtualservice tbyte-microservices-frontend-vs -n tbyte
+kubectl describe virtualservice tbyte-microservices-gateway-vs -n tbyte
+
+# Check backend API routing
+kubectl describe virtualservice tbyte-microservices-backend-vs -n tbyte
 ```
 
 ### Deployment Strategy Benefits Realized

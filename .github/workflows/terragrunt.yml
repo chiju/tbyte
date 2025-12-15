@@ -298,6 +298,7 @@ jobs:
           TF_VAR_github_app_id: ${{ secrets.ARGOCD_APP_ID }}
           TF_VAR_github_app_installation_id: ${{ secrets.ARGOCD_APP_INSTALLATION_ID }}
           TF_VAR_github_app_private_key: ${{ secrets.ARGOCD_APP_PRIVATE_KEY }}
+          GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN_DEV }}
         run: |
           echo "🚀 Deploying Dev Environment (Sequential)..."
           echo "1️⃣ Deploying VPC..."
