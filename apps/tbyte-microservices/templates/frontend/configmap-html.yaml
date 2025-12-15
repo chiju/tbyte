@@ -20,7 +20,7 @@ data:
     <body>
         <div class="container">
             <h1>TByte Microservices Platform</h1>
-            <p>Production-ready microservices on AWS EKS with GitOps - Version 1.2.0 BROKEN</p>
+            <p>Production-ready microservices on AWS EKS with GitOps - Version 1.3.0 WORKING</p>
             <p><small>Updated: 2025-12-15 11:06 UTC</small></p>
             
             <!-- Broken HTML that will cause readiness probe failures -->
