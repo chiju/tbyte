@@ -124,18 +124,18 @@ graph TB
 
 ## Assessment Completion Status
 
-| Section | Task | Status | Documentation |
-|---------|------|--------|---------------|
-| **A** | A1 - Microservices Deployment | ✅ Complete | [Link](./sections/kubernetes/A1-microservices-deployment.md) |
-| **A** | A2 - Troubleshooting Guide | ✅ Complete | [Link](./sections/kubernetes/A2-troubleshooting-guide.md) |
-| **B** | B1 - HA Architecture | 🚧 In Progress | [Link](./sections/aws/B1-ha-architecture.md) |
-| **B** | B2 - Infrastructure Troubleshooting | 📝 Planned | [Link](./sections/aws/B2-infrastructure-troubleshooting.md) |
-| **B** | B3 - CI/CD Pipeline | 📝 Planned | [Link](./sections/aws/B3-cicd-pipeline.md) |
-| **C** | C1 - Terraform Modules | 📝 Planned | [Link](./sections/terraform/C1-terraform-modules.md) |
-| **C** | C2 - Terraform Troubleshooting | 📝 Planned | [Link](./sections/terraform/C2-terraform-troubleshooting.md) |
-| **D** | D1 - Monitoring Strategy | 📝 Planned | [Link](./sections/observability/D1-monitoring-strategy.md) |
-| **D** | D2 - Performance Troubleshooting | 📝 Planned | [Link](./sections/observability/D2-performance-troubleshooting.md) |
-| **E** | E1 - Zero-Downtime Deployment | 📝 Planned | [Link](./sections/system-design/E1-zero-downtime-deployment.md) |
-| **E** | E2 - Security Implementation | 📝 Planned | [Link](./sections/system-design/E2-security-implementation.md) |
-| **F** | F1 - Technical Document | ✅ Complete | This Document |
-| **F** | F2 - Presentation Deck | ✅ Complete | [Link](./presentation-outline.md) |
+| Section | Task | Documentation |
+|---------|------|---------------|
+| **A** | A1 - Microservices Deployment | [Link](./sections/kubernetes/A1-microservices-deployment.md) |
+| **A** | A2 - Troubleshooting Guide  | [Link](./sections/kubernetes/A2-troubleshooting-guide.md) |
+| **B** | B1 - HA Architecture  | [Link](./sections/aws/B1-ha-architecture.md) |
+| **B** | B2 - Infrastructure Troubleshooting | [Link](./sections/aws/B2-infrastructure-troubleshooting.md) |
+| **B** | B3 - CI/CD Pipeline | [Link](./sections/aws/B3-cicd-pipeline.md) |
+| **C** | C1 - Terraform Modules | [Link](./sections/terraform/C1-terraform-modules.md) |
+| **C** | C2 - Terraform Troubleshooting  | [Link](./sections/terraform/C2-terraform-troubleshooting.md) |
+| **D** | D1 - Monitoring Strategy  | [Link](./sections/observability/D1-monitoring-strategy.md) |
+| **D** | D2 - Performance Troubleshooting | [Link](./sections/observability/D2-performance-troubleshooting.md) |
+| **E** | E1 - Zero-Downtime Deployment | [Link](./sections/system-design/E1-zero-downtime-deployment.md) |
+| **E** | E2 - Security Implementation | [Link](./sections/system-design/E2-security-implementation.md) |
+| **F** | F1 - Technical Document | This Document |
+| **F** | F2 - Presentation Deck  | [Link](./presentation.pptx) |
