@@ -9,12 +9,15 @@ data:
         listen 80;
         server_name localhost;
         
-        # This will cause all requests to return 503 and fail readiness probe
         location / {
-            return 503 "Service Unavailable - Testing Rollback";
+            root /usr/share/nginx/html;
+            index index.html;
+            try_files $uri $uri/ /index.html;
         }
         
         location /api/ {
-            return 503 "API Unavailable - Testing Rollback";
+            proxy_pass http://{{ include "tbyte-microservices.fullname" . }}-backend:{{ .Values.backend.service.port }}/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
         }
     }
