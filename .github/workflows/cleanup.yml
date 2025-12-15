@@ -61,3 +61,10 @@ jobs:
       - name: Destroy VPC
         working-directory: terragrunt/environments/dev/vpc
         run: terragrunt destroy --terragrunt-non-interactive --auto-approve || true
+
+      - name: Cleanup Orphaned Resources
+        run: |
+          echo "Cleaning up orphaned CloudWatch log groups..."
+          aws logs delete-log-group --log-group-name "/aws/vpc/flowlogs/tbyte-dev" || true
+          aws logs delete-log-group --log-group-name "/aws/eks/tbyte-dev/cluster" || true
+          echo "Cleanup complete"
