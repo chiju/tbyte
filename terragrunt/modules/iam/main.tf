@@ -3,7 +3,7 @@
 
 # Data sources - conditional to allow planning without existing cluster
 data "aws_eks_cluster" "cluster" {
-  count = var.cluster_oidc_issuer_url == null || can(regex("MOCK", var.cluster_oidc_issuer_url)) ? 0 : 1
+  count = var.cluster_oidc_issuer_url != null && !can(regex("mock", var.cluster_oidc_issuer_url)) ? 1 : 0
   name  = var.cluster_name
 }
 
