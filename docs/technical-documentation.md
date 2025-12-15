@@ -127,6 +127,10 @@ This comprehensive infrastructure diagram illustrates:
 
 ![Kubernetes Architecture Diagram](./diagrams/kubernetes-architecture.drawio.png)
 
+### CI/CD Pipeline Flow
+
+![CI/CD Pipeline Flow Diagram](./diagrams/cicd-pipeline-flow.drawio.png)
+
 ## Technology Stack
 
 | Component | Technology | Purpose |
