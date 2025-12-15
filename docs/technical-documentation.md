@@ -114,9 +114,9 @@ graph TB
 
 ### Detailed AWS Infrastructure
 
-**📊 [AWS Infrastructure Diagram](./diagrams/aws-infrastructure.drawio)**
+![AWS Infrastructure Diagram](./diagrams/aws-infrastructure.drawio.png)
 
-This comprehensive draw.io diagram illustrates:
+This comprehensive infrastructure diagram illustrates:
 - **Multi-AZ VPC Design**: Public and private subnets across eu-central-1a and eu-central-1b
 - **Traffic Flow Patterns**: Inbound (Users → IGW → LB → EKS), Outbound (EKS → NAT → IGW), Database (EKS → RDS)
 - **Security Boundaries**: Internet Gateway, NAT Gateway, Load Balancer, and private subnet isolation
