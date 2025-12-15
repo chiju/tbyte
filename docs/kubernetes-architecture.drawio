@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2025-12-15T09:16:00.000Z" agent="5.0" etag="k8s-arch" version="22.1.11">
+  <diagram name="Kubernetes Architecture" id="k8s-arch">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- EKS Cluster -->
+        <mxCell id="eks-cluster" value="EKS Cluster (tbyte-dev)" style="sketch=0;outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=14;fontStyle=1;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_aws_cloud;strokeColor=#F58534;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#F58534;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="1120" height="720" as="geometry" />
+        </mxCell>
+        
+        <!-- Istio System Namespace -->
+        <mxCell id="istio-system" value="istio-system namespace" style="fillColor=#e1d5e7;strokeColor=#9673a6;dashed=1;verticalAlign=top;fontStyle=1;fontColor=#9673a6;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="100" width="300" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- Istio Gateway -->
+        <mxCell id="istio-gateway" value="Istio Gateway" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#326CE5;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=ing" vertex="1" parent="istio-system">
+          <mxGeometry x="60" y="40" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- Istiod -->
+        <mxCell id="istiod" value="Istiod" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#326CE5;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=c_m" vertex="1" parent="istio-system">
+          <mxGeometry x="160" y="40" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- Application Namespace -->
+        <mxCell id="tbyte-namespace" value="tbyte namespace" style="fillColor=#d5e8d4;strokeColor=#82b366;dashed=1;verticalAlign=top;fontStyle=1;fontColor=#82b366;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="100" width="300" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- Frontend Deployment -->
+        <mxCell id="frontend-deployment" value="Frontend&#xa;Deployment" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#2875E2;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=deploy" vertex="1" parent="tbyte-namespace">
+          <mxGeometry x="40" y="40" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- Backend Deployment -->
+        <mxCell id="backend-deployment" value="Backend&#xa;Deployment" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#2875E2;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=deploy" vertex="1" parent="tbyte-namespace">
+          <mxGeometry x="140" y="40" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- Frontend Pods -->
+        <mxCell id="frontend-pods" value="Frontend Pods" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#2875E2;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=pod" vertex="1" parent="tbyte-namespace">
+          <mxGeometry x="40" y="120" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- Backend Pods -->
+        <mxCell id="backend-pods" value="Backend Pods" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#2875E2;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=pod" vertex="1" parent="tbyte-namespace">
+          <mxGeometry x="140" y="120" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- Services -->
+        <mxCell id="frontend-service" value="Frontend Service" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#326CE5;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=svc" vertex="1" parent="tbyte-namespace">
+          <mxGeometry x="220" y="120" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="backend-service" value="Backend Service" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#326CE5;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=svc" vertex="1" parent="tbyte-namespace">
+          <mxGeometry x="220" y="40" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- Monitoring Namespace -->
+        <mxCell id="monitoring-namespace" value="monitoring namespace" style="fillColor=#fff2cc;strokeColor=#d6b656;dashed=1;verticalAlign=top;fontStyle=1;fontColor=#d6b656;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="340" width="300" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- Prometheus -->
+        <mxCell id="prometheus" value="Prometheus" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#E6522C;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=sts" vertex="1" parent="monitoring-namespace">
+          <mxGeometry x="60" y="40" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- Grafana -->
+        <mxCell id="grafana" value="Grafana" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#F79100;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=deploy" vertex="1" parent="monitoring-namespace">
+          <mxGeometry x="160" y="40" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- OpenTelemetry Namespace -->
+        <mxCell id="otel-namespace" value="opentelemetry namespace" style="fillColor=#f8cecc;strokeColor=#b85450;dashed=1;verticalAlign=top;fontStyle=1;fontColor=#b85450;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="340" width="300" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- OpenTelemetry Collector -->
+        <mxCell id="otel-collector" value="OpenTelemetry&#xa;Collector" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#FF9500;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=c_m" vertex="1" parent="otel-namespace">
+          <mxGeometry x="125" y="40" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- ArgoCD Namespace -->
+        <mxCell id="argocd-namespace" value="argocd namespace" style="fillColor=#e6f3ff;strokeColor=#1ba1e2;dashed=1;verticalAlign=top;fontStyle=1;fontColor=#1ba1e2;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="100" width="200" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- ArgoCD -->
+        <mxCell id="argocd" value="ArgoCD" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#FF6D01;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=deploy" vertex="1" parent="argocd-namespace">
+          <mxGeometry x="75" y="40" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- Argo Rollouts -->
+        <mxCell id="argo-rollouts" value="Argo Rollouts" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#FF6D01;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=rs" vertex="1" parent="argocd-namespace">
+          <mxGeometry x="75" y="120" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- External Secrets Namespace -->
+        <mxCell id="external-secrets-ns" value="external-secrets namespace" style="fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;verticalAlign=top;fontStyle=1;fontColor=#d79b00;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="340" width="200" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- External Secrets Operator -->
+        <mxCell id="eso" value="External Secrets&#xa;Operator" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#FFA500;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=c_m" vertex="1" parent="external-secrets-ns">
+          <mxGeometry x="75" y="40" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- Key Connections -->
+        <!-- Istio to Apps -->
+        <mxCell id="istio-to-frontend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#326CE5;" edge="1" parent="1" source="istio-gateway" target="frontend-pods">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="frontend-to-backend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2875E2;" edge="1" parent="1" source="frontend-pods" target="backend-pods">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- ArgoCD to Apps -->
+        <mxCell id="argocd-to-frontend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#FF6D01;" edge="1" parent="1" source="argocd" target="frontend-deployment">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="argocd-to-backend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#FF6D01;" edge="1" parent="1" source="argocd" target="backend-deployment">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Monitoring Flow -->
+        <mxCell id="apps-to-otel" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#FF9500;" edge="1" parent="1" source="backend-pods" target="otel-collector">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="otel-to-prometheus" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#E6522C;" edge="1" parent="1" source="otel-collector" target="prometheus">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="prometheus-to-grafana" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#F79100;" edge="1" parent="1" source="prometheus" target="grafana">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Canary Deployment -->
+        <mxCell id="rollouts-to-frontend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#FF6D01;strokeDashArray=5 5;" edge="1" parent="1" source="argo-rollouts" target="frontend-pods">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Labels -->
+        <mxCell id="traffic-flow-label" value="Traffic Flow" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#326CE5;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="180" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="gitops-label" value="GitOps" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#FF6D01;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="120" width="60" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="monitoring-label" value="Observability" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#FF9500;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="480" width="80" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="canary-label" value="Canary Deployment" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#FF6D01;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="280" width="100" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- HPA -->
+        <mxCell id="hpa" value="HPA" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#13BEF9;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=hpa" vertex="1" parent="1">
+          <mxGeometry x="80" y="580" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- Network Policies -->
+        <mxCell id="network-policies" value="Network Policies" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#D45087;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=netpol" vertex="1" parent="1">
+          <mxGeometry x="200" y="580" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+        <!-- ConfigMaps & Secrets -->
+        <mxCell id="configmaps" value="ConfigMaps" style="sketch=0;html=1;dashed=0;whitespace=wrap;fillColor=#326CE5;strokeColor=#ffffff;points=[[0.005,0.63],[0.1,0.2],[0.9,0.2],[0.5,0],[0.995,0.63],[0.72,0.99],[0.5,0.99],[0.28,0.99]];verticalLabelPosition=bottom;align=center;verticalAlign=top;shape=mxgraph.kubernetes.icon;prIcon=cm" vertex="1" parent="1">
+          <mxGeometry x="320" y="580" width="50" height="48" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

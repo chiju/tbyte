@@ -19,7 +19,6 @@ dependency "eks" {
 
 dependency "rds" {
   config_path = "../rds"
-  skip_outputs = true
   mock_outputs = {
     secret_arn = "arn:aws:secretsmanager:eu-central-1:045129524082:secret:mock-secret"
   }
