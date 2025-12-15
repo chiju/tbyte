@@ -19,8 +19,8 @@ data:
     </head>
     <body>
         <div class="container">
-            <h1>🚀 TByte Microservices Platform</h1>
-            <p>Production-ready microservices on AWS EKS with GitOps</p>
+            <h1>TByte Microservices Platform</h1>
+            <p>Production-ready microservices on AWS EKS with GitOps - Version 1.1.0</p>
             
             <div id="status" class="status">
                 <p>Checking backend connection...</p>
