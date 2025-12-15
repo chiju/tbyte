@@ -67,4 +67,6 @@ jobs:
           echo "Cleaning up orphaned CloudWatch log groups..."
           aws logs delete-log-group --log-group-name "/aws/vpc/flowlogs/tbyte-dev" || true
           aws logs delete-log-group --log-group-name "/aws/eks/tbyte-dev/cluster" || true
+          echo "Cleaning up Secrets Manager secrets..."
+          aws secretsmanager delete-secret --secret-id "tbyte-dev-postgres-password" --force-delete-without-recovery || true
           echo "Cleanup complete"

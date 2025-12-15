@@ -2,10 +2,6 @@
 
 > **Microservices Platform on AWS EKS**
 
-## Security Notice
-
-**AWS Accounts:** The AWS account IDs referenced in this repository were used for demonstration purposes only and have been closed after testing completion. No active AWS resources or credentials are associated with these accounts.
-
 ## Deliverables
 
 | Deliverable | Status | Link |
@@ -318,4 +314,7 @@ terragrunt run-all destroy --terragrunt-non-interactive
 
 ---
 
-**Note**: This solution demonstrates production-ready DevOps practices including Infrastructure as Code, GitOps, observability, security, and zero-downtime deployments on AWS EKS.
+## Security Notice
+
+**AWS Accounts:** The AWS account IDs referenced in this repository were used for demonstration purposes only and have been closed after testing completion. No active AWS resources or credentials are associated with these accounts.
+
