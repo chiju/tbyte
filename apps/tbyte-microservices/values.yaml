@@ -8,7 +8,7 @@ frontend:
   enabled: true
   image:
     repository: 045129524082.dkr.ecr.eu-central-1.amazonaws.com/tbyte-dev-frontend
-    tag: "cb862542"
+    tag: "a8a0d895"
     pullPolicy: Always
   
   replicaCount: 5
@@ -38,7 +38,7 @@ backend:
   enabled: true
   image:
     repository: 045129524082.dkr.ecr.eu-central-1.amazonaws.com/tbyte-dev-backend
-    tag: "cb862542"
+    tag: "a8a0d895"
     pullPolicy: Always
   
   replicaCount: 2
@@ -89,7 +89,7 @@ postgres:
   # RDS: tbyte-dev-postgres.ctyyuase48r8.eu-central-1.rds.amazonaws.com
   image:
     repository: postgres
-    tag: "cb862542"
+    tag: "a8a0d895"
     pullPolicy: IfNotPresent
   
   replicaCount: 1
