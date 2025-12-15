@@ -10,28 +10,7 @@ spec:
   hosts:
   - tbyte.local
   http:
-  # Backend API Routes
-  - match:
-    - uri:
-        exact: /api/health
-    rewrite:
-      uri: /health
-    route:
-    - destination:
-        host: {{ include "tbyte-microservices.fullname" . }}-backend
-        port:
-          number: 3000
-  - match:
-    - uri:
-        exact: /api/users
-    rewrite:
-      uri: /users
-    route:
-    - destination:
-        host: {{ include "tbyte-microservices.fullname" . }}-backend
-        port:
-          number: 3000
-  # Frontend Routes (Canary-enabled)
+  # Frontend Routes (Canary-enabled) - Only frontend routes for Argo Rollouts
   - match:
     - uri:
         prefix: /

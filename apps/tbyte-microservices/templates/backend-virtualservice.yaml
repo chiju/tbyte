@@ -1,0 +1,36 @@
+{{- if .Values.backend.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "tbyte-microservices.fullname" . }}-backend-vs
+  labels:
+    {{- include "tbyte-microservices.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  gateways:
+  - istio-system/common-gateway
+  hosts:
+  - tbyte.local
+  http:
+  # Backend API Routes
+  - match:
+    - uri:
+        exact: /api/health
+    rewrite:
+      uri: /health
+    route:
+    - destination:
+        host: {{ include "tbyte-microservices.fullname" . }}-backend
+        port:
+          number: 3000
+  - match:
+    - uri:
+        exact: /api/users
+    rewrite:
+      uri: /users
+    route:
+    - destination:
+        host: {{ include "tbyte-microservices.fullname" . }}-backend
+        port:
+          number: 3000
+{{- end }}
