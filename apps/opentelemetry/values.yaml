@@ -2,12 +2,13 @@
 # Using official Helm chart from open-telemetry.github.io/opentelemetry-helm-charts
 
 opentelemetry-operator:
-  # Use auto-generated self-signed certificate (recommended for dev/test)
+  # Disable webhooks to avoid certificate issues
   admissionWebhooks:
+    enabled: false
     certManager:
       enabled: false
     autoGenerateCert:
-      enabled: true
+      enabled: false
   
   # Operator configuration
   manager:
