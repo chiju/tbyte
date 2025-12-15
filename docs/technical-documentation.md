@@ -123,6 +123,10 @@ This comprehensive infrastructure diagram illustrates:
 - **EKS Integration**: Worker nodes in private subnets with managed control plane
 - **Supporting Services**: ECR, Secrets Manager, and RDS PostgreSQL
 
+### Kubernetes Architecture
+
+![Kubernetes Architecture Diagram](./diagrams/kubernetes-architecture.drawio.png)
+
 ## Technology Stack
 
 | Component | Technology | Purpose |
