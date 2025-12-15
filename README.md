@@ -225,32 +225,117 @@ done
 
 ```mermaid
 graph TB
-    subgraph "AWS Cloud - eu-central-1"
+    subgraph "GitHub"
+        REPO[Repository]
+        ACTIONS[GitHub Actions]
+        SECRETS[GitHub Secrets]
+    end
+    
+    subgraph "AWS Account (111111111111)"
+        subgraph "IAM"
+            OIDC[GitHub OIDC Provider]
+            ROLES[IAM Roles & Policies]
+        end
+        
         subgraph "VPC (10.0.0.0/16)"
-            subgraph "Public Subnets"
+            subgraph "Public Subnets (10.0.1.0/24, 10.0.2.0/24)"
+                IGW[Internet Gateway]
                 ALB[Application Load Balancer]
-                NAT[NAT Gateway]
+                NAT1[NAT Gateway AZ-1a]
+                NAT2[NAT Gateway AZ-1b]
             end
-            subgraph "Private Subnets"
-                EKS[EKS Cluster]
-                RDS[(RDS PostgreSQL)]
-                REDIS[(ElastiCache Redis)]
+            
+            subgraph "Private Subnets (10.0.3.0/24, 10.0.4.0/24)"
+                subgraph "EKS Cluster (tbyte-dev)"
+                    subgraph "Control Plane"
+                        API[EKS API Server]
+                        ETCD[etcd]
+                    end
+                    
+                    subgraph "Worker Nodes (t3.medium)"
+                        subgraph "System Pods"
+                            ISTIO[Istio Service Mesh]
+                            ARGOCD[ArgoCD]
+                            PROM[Prometheus]
+                            GRAF[Grafana]
+                            OTEL[OpenTelemetry]
+                            ESO[External Secrets]
+                            KARP[Karpenter]
+                        end
+                        
+                        subgraph "Application Pods"
+                            FE[Frontend Pods]
+                            BE[Backend Pods]
+                        end
+                    end
+                end
+                
+                RDS[(RDS PostgreSQL<br/>db.t3.micro)]
             end
         end
-        ECR[ECR Registry]
-        CW[CloudWatch]
+        
+        subgraph "Container Registry"
+            ECR[ECR Repositories<br/>Frontend & Backend]
+        end
+        
+        subgraph "Observability"
+            CW[CloudWatch Logs]
+            SM[Secrets Manager]
+        end
+        
+        subgraph "Storage"
+            S3[S3 Terraform State]
+        end
     end
     
-    subgraph "CI/CD"
-        GH[GitHub Actions]
-        ARGO[ArgoCD]
+    subgraph "External Access"
+        USER[Users]
+        DOMAIN[tbyte.local]
     end
     
-    GH --> ECR
-    ARGO --> EKS
-    ALB --> EKS
-    EKS --> RDS
-    EKS --> REDIS
+    %% CI/CD Flow
+    REPO --> ACTIONS
+    ACTIONS --> OIDC
+    OIDC --> ROLES
+    ACTIONS --> ECR
+    ACTIONS --> S3
+    
+    %% GitOps Flow
+    ARGOCD --> REPO
+    ARGOCD --> FE
+    ARGOCD --> BE
+    
+    %% Network Flow
+    USER --> DOMAIN
+    DOMAIN --> ALB
+    ALB --> ISTIO
+    ISTIO --> FE
+    ISTIO --> BE
+    BE --> RDS
+    
+    %% Infrastructure Dependencies
+    FE --> ECR
+    BE --> ECR
+    BE --> SM
+    ESO --> SM
+    GRAF --> CW
+    
+    %% Monitoring Flow
+    FE --> OTEL
+    BE --> OTEL
+    OTEL --> PROM
+    PROM --> GRAF
+    
+    %% Security
+    ROLES --> EKS
+    ROLES --> RDS
+    ROLES --> SM
+    
+    style EKS fill:#ff9999
+    style RDS fill:#99ccff
+    style ECR fill:#99ff99
+    style ARGOCD fill:#ffcc99
+    style ISTIO fill:#cc99ff
 ```
 
 ## Technology Stack
