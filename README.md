@@ -42,9 +42,9 @@ git clone https://github.com/YOUR_USERNAME/tbyte.git
 cd tbyte
 
 # 2. Update account IDs in configuration
-sed -i 's/045129524082/YOUR_DEV_ACCOUNT_ID/g' terragrunt/environments/dev/terragrunt.hcl
-sed -i 's/860655786215/YOUR_STAGING_ACCOUNT_ID/g' terragrunt/environments/staging/terragrunt.hcl
-sed -i 's/136673894425/YOUR_PROD_ACCOUNT_ID/g' terragrunt/environments/prod/terragrunt.hcl
+sed -i 's/111111111111/YOUR_DEV_ACCOUNT_ID/g' terragrunt/environments/dev/terragrunt.hcl
+sed -i 's/222222222222/YOUR_STAGING_ACCOUNT_ID/g' terragrunt/environments/staging/terragrunt.hcl
+sed -i 's/333333333333/YOUR_PROD_ACCOUNT_ID/g' terragrunt/environments/prod/terragrunt.hcl
 ```
 
 #### Setup GitHub OIDC in All Accounts
@@ -74,21 +74,21 @@ sed -i 's/136673894425/YOUR_PROD_ACCOUNT_ID/g' terragrunt/environments/prod/terr
 ```bash
 # Current GitHub secrets configured (check with: gh secret list)
 # Account IDs
-AWS_ACCOUNT_ID_DEV: "045129524082"
-AWS_ACCOUNT_ID_STAGING: "860655786215"  
-AWS_ACCOUNT_ID_PRODUCTION: "136673894425"
+AWS_ACCOUNT_ID_DEV: "111111111111"
+AWS_ACCOUNT_ID_STAGING: "222222222222"  
+AWS_ACCOUNT_ID_PRODUCTION: "333333333333"
 AWS_ACCOUNT_ID_ROOT: "your-root-account-id"
 
 # Role ARNs (depends on which setup script you used)
 # If using setup-multi-account-oidc.sh:
-AWS_ROLE_ARN_DEV: "arn:aws:iam::045129524082:role/GitHubActionsEKSRole"
-AWS_ROLE_ARN_STAGING: "arn:aws:iam::860655786215:role/GitHubActionsEKSRole"
-AWS_ROLE_ARN_PRODUCTION: "arn:aws:iam::136673894425:role/GitHubActionsEKSRole"
+AWS_ROLE_ARN_DEV: "arn:aws:iam::111111111111:role/GitHubActionsEKSRole"
+AWS_ROLE_ARN_STAGING: "arn:aws:iam::222222222222:role/GitHubActionsEKSRole"
+AWS_ROLE_ARN_PRODUCTION: "arn:aws:iam::333333333333:role/GitHubActionsEKSRole"
 
 # If using setup-multi-env-roles.sh:
-# AWS_ROLE_ARN_DEV: "arn:aws:iam::045129524082:role/TByteDevGitHubActionsRole"
-# AWS_ROLE_ARN_STAGING: "arn:aws:iam::860655786215:role/TByteStagingGitHubActionsRole"
-# AWS_ROLE_ARN_PRODUCTION: "arn:aws:iam::136673894425:role/TByteProdGitHubActionsRole"
+# AWS_ROLE_ARN_DEV: "arn:aws:iam::111111111111:role/TByteDevGitHubActionsRole"
+# AWS_ROLE_ARN_STAGING: "arn:aws:iam::222222222222:role/TByteStagingGitHubActionsRole"
+# AWS_ROLE_ARN_PRODUCTION: "arn:aws:iam::333333333333:role/TByteProdGitHubActionsRole"
 
 # ArgoCD GitHub App credentials
 ARGOCD_APP_ID: "github-app-id"
