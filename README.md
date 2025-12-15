@@ -33,7 +33,21 @@ kubectl version      # Kubernetes CLI
 terragrunt --version # Terragrunt v0.50+
 ```
 
-### Option 1: Fork and Setup Your Own Environment
+### Option 1: Fork and Setup Your Own Environment (Recommended for Independent Testing)
+
+> **Note**: This option allows you to test the solution independently in your own AWS accounts without any dependencies on the original repository.
+
+### Option 2: Request Collaborator Access (For Direct Testing)
+
+> **For Reviewers**: If you prefer to test directly from this repository without forking, please provide your:
+> - **Email address** or **GitHub username** 
+> - I'll add you as a collaborator to enable GitHub Actions triggers and testing
+
+---
+
+## Setup Instructions
+
+### Option 1 Setup: Fork and Configure
 
 #### Setup Multi-Account Structure
 ```bash
