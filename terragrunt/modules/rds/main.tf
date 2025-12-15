@@ -81,7 +81,7 @@ resource "aws_db_parameter_group" "postgres" {
 resource "aws_secretsmanager_secret" "postgres_password" {
   name                    = "${var.cluster_name}-postgres-password"
   description             = "PostgreSQL password for ${var.cluster_name}"
-  recovery_window_in_days = 7
+  recovery_window_in_days = 0
 
   tags = {
     Name        = "${var.cluster_name}-postgres-password"
