@@ -10,7 +10,7 @@ frontend:
     tag: "latest"  # Will be updated by pipeline
     pullPolicy: Always
   
-  replicaCount: 1  # Reduced for dev
+  replicaCount: 5  # Increased for Karpenter testing
   
   resources:
     requests:
