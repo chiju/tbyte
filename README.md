@@ -2,6 +2,10 @@
 
 > **Microservices Platform on AWS EKS**
 
+## Security Notice
+
+**AWS Accounts:** The AWS account IDs referenced in this repository were used for demonstration purposes only and have been closed after testing completion. No active AWS resources or credentials are associated with these accounts.
+
 ## Deliverables
 
 | Deliverable | Status | Link |
