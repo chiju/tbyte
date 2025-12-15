@@ -40,6 +40,8 @@ spec:
       labels:
         {{- include "tbyte-microservices.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: frontend
+      annotations:
+        instrumentation.opentelemetry.io/inject-nodejs: "tbyte/tbyte-instrumentation"
     spec:
       securityContext:
         runAsNonRoot: true
