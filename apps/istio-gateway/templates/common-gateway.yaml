@@ -21,57 +21,12 @@ metadata:
   namespace: istio-system
 spec:
   hosts:
-  - tbyte.local
   - grafana.local
   - kiali.local
   - jaeger.local
   gateways:
   - common-gateway
   http:
-  # TByte App Routes
-  - match:
-    - uri:
-        exact: /api/health
-      headers:
-        host:
-          exact: tbyte.local
-    rewrite:
-      uri: /health
-    route:
-    - destination:
-        host: tbyte-microservices-backend.tbyte.svc.cluster.local
-        port:
-          number: 3000
-  - match:
-    - uri:
-        exact: /api/users
-      headers:
-        host:
-          exact: tbyte.local
-    rewrite:
-      uri: /users
-    route:
-    - destination:
-        host: tbyte-microservices-backend.tbyte.svc.cluster.local
-        port:
-          number: 3000
-  - match:
-    - uri:
-        prefix: /
-      headers:
-        host:
-          exact: tbyte.local
-    route:
-    - destination:
-        host: tbyte-microservices-frontend.tbyte.svc.cluster.local
-        port:
-          number: 80
-      weight: 100
-    - destination:
-        host: tbyte-microservices-frontend-canary.tbyte.svc.cluster.local
-        port:
-          number: 80
-      weight: 0
   # Grafana Route
   - match:
     - uri:

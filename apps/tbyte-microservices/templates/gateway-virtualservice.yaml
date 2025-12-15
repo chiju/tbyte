@@ -1,0 +1,48 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "tbyte-microservices.fullname" . }}-gateway-vs
+  labels:
+    {{- include "tbyte-microservices.labels" . | nindent 4 }}
+spec:
+  gateways:
+  - istio-system/common-gateway
+  hosts:
+  - tbyte.local
+  http:
+  # Backend API Routes
+  - match:
+    - uri:
+        exact: /api/health
+    rewrite:
+      uri: /health
+    route:
+    - destination:
+        host: {{ include "tbyte-microservices.fullname" . }}-backend
+        port:
+          number: 3000
+  - match:
+    - uri:
+        exact: /api/users
+    rewrite:
+      uri: /users
+    route:
+    - destination:
+        host: {{ include "tbyte-microservices.fullname" . }}-backend
+        port:
+          number: 3000
+  # Frontend Routes (Canary-enabled)
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: {{ include "tbyte-microservices.fullname" . }}-frontend
+        port:
+          number: 80
+      weight: 100
+    - destination:
+        host: {{ include "tbyte-microservices.fullname" . }}-frontend-canary
+        port:
+          number: 80
+      weight: 0
