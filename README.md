@@ -1,6 +1,6 @@
-# TByte - Senior DevOps Engineer Assessment
+# TByte - Assessment
 
-> **Production-Ready Microservices Platform on AWS EKS**
+> **Microservices Platform on AWS EKS**
 
 ## Deliverables
 
