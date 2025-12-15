@@ -11,7 +11,7 @@ frontend:
     tag: "0c75557a"
     pullPolicy: Always
   
-  replicaCount: 2
+  replicaCount: 5
   
   resources:
     requests:

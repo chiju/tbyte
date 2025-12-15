@@ -10,9 +10,9 @@ spec:
   metrics:
   - name: pod-ready-ratio
     interval: 15s
-    count: 2
+    count: 3
     successCondition: result[0] >= 0.5
-    failureLimit: 3
+    failureLimit: 2
     provider:
       prometheus:
         address: http://monitoring-kube-prometheus-prometheus.monitoring:9090
@@ -24,9 +24,9 @@ spec:
           )
   - name: cpu-usage
     interval: 15s
-    count: 2
+    count: 3
     successCondition: result[0] <= 0.9
-    failureLimit: 3
+    failureLimit: 2
     provider:
       prometheus:
         address: http://monitoring-kube-prometheus-prometheus.monitoring:9090
