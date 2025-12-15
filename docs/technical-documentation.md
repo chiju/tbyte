@@ -80,6 +80,8 @@ This document follows the required Problem → Approach → Solution → Result 
 
 ## Architecture Overview
 
+### High-Level System Architecture
+
 ```mermaid
 graph TB
     subgraph "AWS Cloud - eu-central-1"
@@ -109,6 +111,17 @@ graph TB
     EKS --> RDS
     EKS --> REDIS
 ```
+
+### Detailed AWS Infrastructure
+
+**📊 [AWS Infrastructure Diagram](./diagrams/aws-infrastructure.drawio)**
+
+This comprehensive draw.io diagram illustrates:
+- **Multi-AZ VPC Design**: Public and private subnets across eu-central-1a and eu-central-1b
+- **Traffic Flow Patterns**: Inbound (Users → IGW → LB → EKS), Outbound (EKS → NAT → IGW), Database (EKS → RDS)
+- **Security Boundaries**: Internet Gateway, NAT Gateway, Load Balancer, and private subnet isolation
+- **EKS Integration**: Worker nodes in private subnets with managed control plane
+- **Supporting Services**: ECR, Secrets Manager, and RDS PostgreSQL
 
 ## Technology Stack
 
